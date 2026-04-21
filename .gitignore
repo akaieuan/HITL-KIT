@@ -17,6 +17,10 @@ next-env.d.ts
 /build
 /dist
 
+# monorepo package build outputs
+packages/*/dist
+packages/*/.turbo
+
 # misc
 .DS_Store
 *.pem
