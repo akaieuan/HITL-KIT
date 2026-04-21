@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   title: "HITL Kit — Human-in-the-Loop AI, measured properly",
   description:
     "A design system, component library, and evaluation framework for human-in-the-loop AI. An argument, an implementation, and a benchmark.",
-  metadataBase: new URL("https://hitl-kit.dev"),
+  metadataBase: new URL("https://hitlkit.dev"),
   openGraph: {
     title: "HITL Kit",
     description:

@@ -4,7 +4,7 @@
   "title": "Search Result Card",
   "description": "Ranked search result card with rank badge, metadata, snippet, and relevance bar.",
   "registryDependencies": [
-    "hitl-utils"
+    "https://www.hitlkit.dev/r/hitl-utils.json"
   ],
   "files": [
     {

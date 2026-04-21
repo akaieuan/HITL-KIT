@@ -4,7 +4,7 @@
   "title": "AI Generation Scale",
   "description": "Five-segment ordinal scale indicating AI involvement in a piece of work. Embodies the scaffolding and expertise-matching principle from Dhillon et al. (2024).",
   "registryDependencies": [
-    "hitl-utils"
+    "https://www.hitlkit.dev/r/hitl-utils.json"
   ],
   "files": [
     {

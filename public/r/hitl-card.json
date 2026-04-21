@@ -7,8 +7,8 @@
     "lucide-react"
   ],
   "registryDependencies": [
-    "hitl-utils",
-    "hitl-types"
+    "https://www.hitlkit.dev/r/hitl-utils.json",
+    "https://www.hitlkit.dev/r/hitl-types.json"
   ],
   "files": [
     {

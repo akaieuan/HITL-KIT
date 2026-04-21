@@ -4,7 +4,7 @@
   "title": "Shared Primitives",
   "description": "The atomic palette. Accent swatches, approval badge variants, and approve and reject rows.",
   "registryDependencies": [
-    "hitl-utils"
+    "https://www.hitlkit.dev/r/hitl-utils.json"
   ],
   "files": [
     {

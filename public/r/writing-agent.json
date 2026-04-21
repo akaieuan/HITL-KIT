@@ -7,9 +7,9 @@
     "lucide-react"
   ],
   "registryDependencies": [
-    "hitl-utils",
-    "hitl-types",
-    "hitl-subagent-meta"
+    "https://www.hitlkit.dev/r/hitl-utils.json",
+    "https://www.hitlkit.dev/r/hitl-types.json",
+    "https://www.hitlkit.dev/r/hitl-subagent-meta.json"
   ],
   "files": [
     {

@@ -14,14 +14,9 @@ export default function Home() {
       <main className="mx-auto max-w-6xl px-6">
         {/* Hero */}
         <section className="pt-24 pb-40 md:pt-32 md:pb-48">
-          <p className="label mb-8">
-            A measurement problem. An{" "}
-            <AssistNotComplete label="assist-not-complete" className="label text-muted-foreground hover:text-foreground" />{" "}
-            paradigm.
-          </p>
-
-          <h1 className="font-serif text-5xl leading-[1.05] tracking-tight text-foreground sm:text-6xl md:text-7xl lg:text-[6.5rem] lg:leading-[0.95]">
-            Human-in-the-loop AI,{" "}
+          <h1 className="font-serif text-4xl leading-[1.05] tracking-tight text-foreground sm:text-5xl md:text-6xl lg:text-7xl">
+            Human-in-the-loop AI,
+            <br />
             <span className="text-[color:var(--accent-blue)] tracking-tight">
               measured properly
             </span>
@@ -205,7 +200,7 @@ export default function Home() {
               <pre className="overflow-x-auto py-2 font-mono text-sm text-foreground">
                 <span className="text-muted-foreground">$</span> npx shadcn@latest add{" "}
                 <span className="text-[color:var(--accent-blue)]">
-                  https://hitl-kit.dev/r/hitl-card.json
+                  https://www.hitlkit.dev/r/hitl-card.json
                 </span>
               </pre>
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">

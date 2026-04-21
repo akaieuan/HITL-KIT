@@ -24,4 +24,4 @@ export const REGISTRY_ITEMS: RegistryItem[] = [
   { name: "hitl-subagent-meta", title: "Subagent status metadata", description: "Icon and color mapping for the six agent states.", type: "registry:lib", registryDependencies: ["hitl-types"] },
 ];
 
-export const REGISTRY_BASE_URL = "https://hitl-kit.dev/r";
+export const REGISTRY_BASE_URL = "https://www.hitlkit.dev/r";

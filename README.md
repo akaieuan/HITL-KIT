@@ -91,18 +91,12 @@ HITL Kit primitives reference custom CSS variables for kind-semantic color. Past
 ### Install a primitive
 
 ```bash
-npx shadcn@latest add https://raw.githubusercontent.com/akaieuan/HITL-KIT/main/public/r/hitl-card.json
+npx shadcn@latest add https://www.hitlkit.dev/r/hitl-card.json
 ```
 
 The CLI resolves registry dependencies (`hitl-utils`, `hitl-types`) and npm dependencies (`lucide-react`) automatically.
 
-Swap `hitl-card.json` for any primitive name from the table above. See the [full install reference](https://github.com/akaieuan/HITL-KIT/tree/main/public/r) on the site's `/registry` page.
-
-### Once deployed, URLs will simplify to:
-
-```bash
-npx shadcn@latest add https://hitl-kit.dev/r/hitl-card.json
-```
+Swap `hitl-card.json` for any primitive name from the table above. Full install reference with copy buttons at [hitlkit.dev/registry](https://www.hitlkit.dev/registry).
 
 ---
 

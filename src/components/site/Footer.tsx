@@ -59,10 +59,19 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-16 border-t border-border pt-6">
+        <div className="mt-16 flex flex-col-reverse gap-3 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
           <p className="label">
             © {new Date().getFullYear()} {BRAND.author}
           </p>
+          <a
+            href={BRAND.site}
+            target="_blank"
+            rel="noreferrer"
+            className="group inline-flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+          >
+            aka4uh.com
+            <ArrowUpRight className="h-3 w-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+          </a>
         </div>
       </div>
     </footer>
