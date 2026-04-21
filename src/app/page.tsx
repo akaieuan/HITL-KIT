@@ -70,7 +70,7 @@ export default function Home() {
         {/* Artifacts */}
         <section className="pb-32 md:pb-40">
           <h2 className="mb-14 max-w-3xl font-serif text-3xl leading-tight text-foreground sm:text-5xl">
-            A paper, and the components that prove it.
+            A paper and component library.
           </h2>
 
           <div className="flex flex-col">
