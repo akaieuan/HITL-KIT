@@ -1,0 +1,47 @@
+{
+  "name": "@hitl-kit/core",
+  "version": "0.3.0",
+  "description": "Zod event schemas for human-in-the-loop AI primitives. Framework-agnostic protocol shared by every HITL Kit adapter.",
+  "keywords": [
+    "hitl",
+    "human-in-the-loop",
+    "zod",
+    "ai",
+    "agents",
+    "schema"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0",
+    "typescript": "^5"
+  },
+  "license": "MIT",
+  "author": "Ieuan King <ieuan@ubik.studio>",
+  "homepage": "https://hitlkit.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akaieuan/HITL-KIT.git",
+    "directory": "packages/core"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

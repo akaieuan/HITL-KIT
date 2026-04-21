@@ -1,0 +1,52 @@
+{
+  "name": "@hitl-kit/react",
+  "version": "0.3.0",
+  "description": "HitlEventRenderer, a typed dispatcher that maps validated HITL events to React primitives. Pair with @hitl-kit/core and any shadcn-installed HITL primitives.",
+  "keywords": [
+    "hitl",
+    "human-in-the-loop",
+    "react",
+    "ai",
+    "agents",
+    "shadcn"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hitl-kit/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "react": ">=18"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "react": "^19",
+    "tsup": "^8.5.0",
+    "typescript": "^5"
+  },
+  "license": "MIT",
+  "author": "Ieuan King <ieuan@ubik.studio>",
+  "homepage": "https://hitlkit.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akaieuan/HITL-KIT.git",
+    "directory": "packages/react"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -67,11 +67,23 @@ export default function TestPageClient() {
   const [results, setResults] = useState<Result[]>([]);
   const [base, setBase] = useState<"local" | "prod">("local");
   const [running, setRunning] = useState(false);
+  const [displayBaseUrl, setDisplayBaseUrl] = useState<string | null>(null);
 
+  // Fetch target: same-origin for "local", absolute for "prod".
+  // Relative URLs work for fetch and avoid any SSR/CSR origin mismatch.
   const getBaseUrl = useCallback(() => {
     if (base === "prod") return "https://www.hitlkit.dev/r";
-    if (typeof window === "undefined") return "/r";
-    return `${window.location.origin}/r`;
+    return "/r";
+  }, [base]);
+
+  // Display URL is computed after mount so the server can render a
+  // stable placeholder and the client can populate the full origin.
+  useEffect(() => {
+    if (base === "prod") {
+      setDisplayBaseUrl("https://www.hitlkit.dev/r");
+    } else {
+      setDisplayBaseUrl(`${window.location.origin}/r`);
+    }
   }, [base]);
 
   const test = useCallback(async () => {
@@ -259,7 +271,7 @@ export default function TestPageClient() {
               ))}
             </div>
             <span className="font-mono text-[10.5px] text-muted-foreground">
-              {getBaseUrl()}
+              {displayBaseUrl ?? "…"}
             </span>
           </div>
 
