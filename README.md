@@ -4,7 +4,7 @@
 
 A design system and component library for human-in-the-loop AI, paired with an open perspective paper on why 95% of enterprise AI pilots fail.
 
-**Status:** v0.1 · Reference implementation. 11 primitives. Shadcn-compatible registry. Paper live at `/paper`.
+**Status:** v0.2 · Publicly deployed at [hitlkit.dev](https://www.hitlkit.dev). 11 primitives installable via shadcn CLI. Paper live at [hitlkit.dev/paper](https://www.hitlkit.dev/paper). End-to-end install verified from the public domain.
 
 ---
 
@@ -138,7 +138,8 @@ No global state, no CSS-in-JS runtime, no wrapper SDK. Every component is copy-p
 | Version | Scope | Status |
 |---|---|---|
 | **v0.1** | Reference site, 11 primitives as source, paper, shadcn registry built | ✅ Shipped |
-| **v0.2** | Deploy to Vercel, branded URLs, auto-rebuild registry on push via CI | Planned |
+| **v0.2** | Deployed to Vercel at hitlkit.dev. Branded registry URLs at `hitlkit.dev/r/*.json`. `npx shadcn@latest add` verified end-to-end from the public domain. Loop favicon, MIT LICENSE, AssistNotComplete link component. | ✅ Shipped |
+| **v0.2.1** | GitHub Action (`.github/workflows/registry.yml`) that rebuilds the registry on every push/PR and fails CI if `public/r/*.json` drifts from `registry.json`. Contributors have to run `pnpm registry:build` and commit the result. | ✅ Shipped |
 | **v0.3** | `@hitl-kit/core` npm package with Zod event schemas + `<HitlEventRenderer />` | Planned |
 | **v0.4** | Framework adapter: `@hitl-kit/langgraph` with working demo app | Planned |
 | **v0.5** | Second adapter (Vercel AI SDK or Claude Agent SDK) + MCP server | Planned |
