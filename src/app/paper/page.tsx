@@ -7,6 +7,7 @@ import rehypeSlug from "rehype-slug";
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
+import { AssistNotComplete } from "@/components/site/AssistNotComplete";
 import { PaperTOC } from "./PaperTOC";
 
 export const metadata: Metadata = {
@@ -37,8 +38,8 @@ export default async function PaperPage() {
               An AI Measurement Problem
             </h1>
             <p className="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground">
-              Why 95% of enterprise AI pilots fail — and how the{" "}
-              <span className="text-foreground">Assist-Not-Complete</span>{" "}
+              Why 95% of enterprise AI pilots fail, and how the{" "}
+              <AssistNotComplete className="text-foreground hover:text-[color:var(--accent-blue)]" />{" "}
               paradigm reframes how we design, evaluate, and deploy these
               systems.
             </p>

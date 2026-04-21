@@ -59,12 +59,9 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-16 flex flex-col-reverse gap-4 border-t border-border pt-6 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-16 border-t border-border pt-6">
           <p className="label">
-            © {new Date().getFullYear()} {BRAND.author} · built in public
-          </p>
-          <p className="label">
-            v0.1 · assist-not-complete
+            © {new Date().getFullYear()} {BRAND.author}
           </p>
         </div>
       </div>

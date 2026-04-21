@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
+import { AssistNotComplete } from "@/components/site/AssistNotComplete";
 import { cn } from "@/lib/utils";
 import { LAYERS, PATTERNS, THESIS, ACCENT_CLASSES, BRAND } from "@/lib/content";
 
@@ -14,7 +15,9 @@ export default function Home() {
         {/* Hero */}
         <section className="pt-24 pb-40 md:pt-32 md:pb-48">
           <p className="label mb-8">
-            A measurement problem. An assist-not-complete paradigm.
+            A measurement problem. An{" "}
+            <AssistNotComplete label="assist-not-complete" className="label text-muted-foreground hover:text-foreground" />{" "}
+            paradigm.
           </p>
 
           <h1 className="font-serif text-5xl leading-[1.05] tracking-tight text-foreground sm:text-6xl md:text-7xl lg:text-[6.5rem] lg:leading-[0.95]">
@@ -64,7 +67,8 @@ export default function Home() {
             {THESIS.lede}
           </blockquote>
           <p className="mt-8 max-w-xl text-sm leading-relaxed text-muted-foreground">
-            {THESIS.claim}
+            <AssistNotComplete /> is a paradigm for building AI systems that
+            collaborate with humans instead of displacing them.
           </p>
         </section>
 

@@ -5,6 +5,7 @@ export const BRAND = {
     "A design system and component library for human-in-the-loop AI, grounded in an open perspective paper.",
   github: "https://github.com/akaieuan/HITL-KIT",
   twitter: "https://x.com/akaieuan",
+  site: "https://aka4uh.com",
   author: "Ieuan King",
   authorHandle: "akaieuan",
 };
