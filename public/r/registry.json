@@ -1,0 +1,230 @@
+{
+  "$schema": "https://ui.shadcn.com/schema/registry.json",
+  "name": "hitl-kit",
+  "homepage": "https://hitl-kit.dev",
+  "items": [
+    {
+      "name": "hitl-utils",
+      "type": "registry:lib",
+      "title": "cn utility",
+      "description": "Tailwind classname merge helper used by every HITL Kit primitive.",
+      "dependencies": ["clsx", "tailwind-merge"],
+      "files": [
+        {
+          "path": "src/lib/utils.ts",
+          "type": "registry:lib",
+          "target": "lib/utils.ts"
+        }
+      ]
+    },
+    {
+      "name": "hitl-types",
+      "type": "registry:lib",
+      "title": "HITL type definitions",
+      "description": "Shared TypeScript types for HITL primitives: AgentStatus, ApprovalStatus, HitlCardState, RightTab.",
+      "files": [
+        {
+          "path": "src/components/hitl/types.ts",
+          "type": "registry:lib",
+          "target": "components/hitl/types.ts"
+        }
+      ]
+    },
+    {
+      "name": "hitl-subagent-meta",
+      "type": "registry:lib",
+      "title": "Subagent status metadata",
+      "description": "Shared icon and color mapping for the six agent execution states (idle, running, completed, error, skipped, cancelled).",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["hitl-types"],
+      "files": [
+        {
+          "path": "src/components/hitl/subagent-meta.ts",
+          "type": "registry:lib",
+          "target": "components/hitl/subagent-meta.ts"
+        }
+      ]
+    },
+    {
+      "name": "hitl-card",
+      "type": "registry:ui",
+      "title": "Interrupt Card",
+      "description": "In-thread approval boundary for agent actions. Three semantic variants (search, review, write). Four states (idle, expanded, confirmed, dismissed).",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["hitl-utils", "hitl-types"],
+      "files": [
+        {
+          "path": "src/components/hitl/HitlCard.tsx",
+          "type": "registry:ui",
+          "target": "components/hitl/HitlCard.tsx"
+        }
+      ]
+    },
+    {
+      "name": "subagent-status-card",
+      "type": "registry:ui",
+      "title": "Subagent Status Card",
+      "description": "Single-row agent status with icon, label, detail, and state badge. Use to wrap any in-progress agentic task.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["hitl-utils", "hitl-types", "hitl-subagent-meta"],
+      "files": [
+        {
+          "path": "src/components/hitl/SubagentStatusCard.tsx",
+          "type": "registry:ui",
+          "target": "components/hitl/SubagentStatusCard.tsx"
+        }
+      ]
+    },
+    {
+      "name": "mini-trace",
+      "type": "registry:ui",
+      "title": "MiniTrace",
+      "description": "Collapsible step-by-step renderer for agent reasoning. Thought, action, result. Makes supporting facts visible per §3.3 of the paper.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["hitl-utils"],
+      "files": [
+        {
+          "path": "src/components/hitl/MiniTrace.tsx",
+          "type": "registry:ui",
+          "target": "components/hitl/MiniTrace.tsx"
+        }
+      ]
+    },
+    {
+      "name": "ai-generation-scale",
+      "type": "registry:ui",
+      "title": "AI Generation Scale",
+      "description": "Five-segment ordinal scale indicating AI involvement in a piece of work. Embodies the scaffolding and expertise-matching principle from Dhillon et al. (2024).",
+      "registryDependencies": ["hitl-utils"],
+      "files": [
+        {
+          "path": "src/components/hitl/AiGenerationScale.tsx",
+          "type": "registry:ui",
+          "target": "components/hitl/AiGenerationScale.tsx"
+        }
+      ]
+    },
+    {
+      "name": "context-chips",
+      "type": "registry:ui",
+      "title": "Context Chips",
+      "description": "Pill chips representing context attached to an agent run. Notes, files, URLs. Removable with overflow truncation.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["hitl-utils"],
+      "files": [
+        {
+          "path": "src/components/hitl/ContextChips.tsx",
+          "type": "registry:ui",
+          "target": "components/hitl/ContextChips.tsx"
+        }
+      ]
+    },
+    {
+      "name": "qa-flow",
+      "type": "registry:ui",
+      "title": "QA Flow",
+      "description": "Multi-question approval card. Single-choice, multi-select, and freeform text. Submits to a confirmed state.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["hitl-utils"],
+      "files": [
+        {
+          "path": "src/components/hitl/QAFlow.tsx",
+          "type": "registry:ui",
+          "target": "components/hitl/QAFlow.tsx"
+        }
+      ]
+    },
+    {
+      "name": "writing-agent",
+      "type": "registry:ui",
+      "title": "Writing Agent",
+      "description": "Compound widget for a draft-in-progress document. Title, target section, word range, evidence notes, and six status states.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [
+        "hitl-utils",
+        "hitl-types",
+        "hitl-subagent-meta"
+      ],
+      "files": [
+        {
+          "path": "src/components/hitl/WritingAgent.tsx",
+          "type": "registry:ui",
+          "target": "components/hitl/WritingAgent.tsx"
+        }
+      ]
+    },
+    {
+      "name": "research-agent",
+      "type": "registry:ui",
+      "title": "Research Agent",
+      "description": "Three-mode config surface for a long-running research task. Create, follow-up, read URL.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["hitl-utils"],
+      "files": [
+        {
+          "path": "src/components/hitl/ResearchAgent.tsx",
+          "type": "registry:ui",
+          "target": "components/hitl/ResearchAgent.tsx"
+        }
+      ]
+    },
+    {
+      "name": "batch-queue",
+      "type": "registry:ui",
+      "title": "Batch Approval Queue",
+      "description": "Sequential approve and reject flow across mixed agent items. Auto-advances and resolves to a summary state.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["hitl-utils"],
+      "files": [
+        {
+          "path": "src/components/hitl/BatchQueue.tsx",
+          "type": "registry:ui",
+          "target": "components/hitl/BatchQueue.tsx"
+        }
+      ]
+    },
+    {
+      "name": "search-result-card",
+      "type": "registry:ui",
+      "title": "Search Result Card",
+      "description": "Ranked search result card with rank badge, metadata, snippet, and relevance bar.",
+      "registryDependencies": ["hitl-utils"],
+      "files": [
+        {
+          "path": "src/components/hitl/SearchResultCard.tsx",
+          "type": "registry:ui",
+          "target": "components/hitl/SearchResultCard.tsx"
+        }
+      ]
+    },
+    {
+      "name": "approve-reject-row",
+      "type": "registry:ui",
+      "title": "Approve / Reject Row",
+      "description": "The canonical binary decision row. Pending, approved, rejected. Optional undo.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": ["hitl-utils", "hitl-types"],
+      "files": [
+        {
+          "path": "src/components/hitl/ApproveRejectRow.tsx",
+          "type": "registry:ui",
+          "target": "components/hitl/ApproveRejectRow.tsx"
+        }
+      ]
+    },
+    {
+      "name": "shared-primitives",
+      "type": "registry:ui",
+      "title": "Shared Primitives",
+      "description": "The atomic palette. Accent swatches, approval badge variants, and approve and reject rows.",
+      "registryDependencies": ["hitl-utils"],
+      "files": [
+        {
+          "path": "src/components/hitl/SharedPrimitives.tsx",
+          "type": "registry:ui",
+          "target": "components/hitl/SharedPrimitives.tsx"
+        }
+      ]
+    }
+  ]
+}

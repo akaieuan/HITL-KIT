@@ -4,10 +4,7 @@ import { BRAND } from "@/lib/content";
 
 export function Footer() {
   return (
-    <footer className="relative mt-32 overflow-hidden border-t border-[color:var(--accent-blue)]/20">
-      {/* Gradient backing — very subtle blue wash at bottom edge */}
-      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[color:var(--accent-blue)]/60 to-transparent" />
-
+    <footer className="mt-32">
       <div className="mx-auto max-w-6xl px-6 pt-16 pb-8">
         <div className="grid gap-12 md:grid-cols-[1fr_auto]">
           {/* Big brand + statement */}
@@ -48,6 +45,7 @@ export function Footer() {
               <p className="label">Read</p>
               <Link href="/paper" className="text-muted-foreground transition-colors hover:text-foreground">Paper</Link>
               <Link href="/components" className="text-muted-foreground transition-colors hover:text-foreground">Components</Link>
+              <Link href="/registry" className="text-muted-foreground transition-colors hover:text-foreground">Registry</Link>
             </div>
             <div className="flex flex-col gap-3">
               <p className="label">Links</p>

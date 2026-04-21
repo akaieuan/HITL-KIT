@@ -5,21 +5,6 @@ import { Footer } from "@/components/site/Footer";
 import { cn } from "@/lib/utils";
 import { LAYERS, PATTERNS, THESIS, ACCENT_CLASSES, BRAND } from "@/lib/content";
 
-// Small editorial section marker: "§ II · LABEL" + gradient fade line
-function SectionMark({ index, label }: { index: string; label: string }) {
-  return (
-    <div className="mb-14 flex items-center gap-4">
-      <span className="font-mono text-[11px] font-medium tracking-[0.12em] text-foreground">
-        §&nbsp;{index}
-      </span>
-      <span className="font-mono text-[11px] tracking-[0.08em] text-muted-foreground uppercase">
-        {label}
-      </span>
-      <div className="h-px flex-1 bg-gradient-to-r from-border via-border/30 to-transparent" />
-    </div>
-  );
-}
-
 export default function Home() {
   return (
     <>
@@ -73,10 +58,8 @@ export default function Home() {
           </div>
         </section>
 
-        {/* § I. Thesis */}
+        {/* Thesis */}
         <section className="pb-32 md:pb-40">
-          <SectionMark index="I" label="The thesis" />
-
           <blockquote className="font-serif text-2xl font-light leading-[1.3] tracking-tight text-foreground sm:text-3xl md:text-4xl md:leading-[1.25]">
             {THESIS.lede}
           </blockquote>
@@ -85,10 +68,8 @@ export default function Home() {
           </p>
         </section>
 
-        {/* § II. Artifacts */}
+        {/* Artifacts */}
         <section className="pb-32 md:pb-40">
-          <SectionMark index="II" label="The artifacts" />
-
           <h2 className="mb-14 max-w-3xl font-serif text-3xl leading-tight text-foreground sm:text-5xl">
             A paper, and the components that prove it.
           </h2>
@@ -135,10 +116,8 @@ export default function Home() {
           </div>
         </section>
 
-        {/* § III. Patterns */}
+        {/* Patterns */}
         <section id="patterns" className="pb-32 md:pb-40">
-          <SectionMark index="III" label="The pattern language" />
-
           <div className="mb-14 flex items-end justify-between gap-6">
             <h2 className="max-w-2xl font-serif text-3xl leading-tight text-foreground sm:text-5xl">
               Eleven canonical HITL interactions.
@@ -193,10 +172,8 @@ export default function Home() {
           </div>
         </section>
 
-        {/* § IV. Install */}
+        {/* Install */}
         <section className="pb-32">
-          <SectionMark index="IV" label="Install" />
-
           <div className="grid gap-12 md:grid-cols-[1fr_1.2fr] md:gap-20">
             <div>
               <h2 className="font-serif text-3xl leading-tight text-foreground sm:text-5xl">
@@ -204,27 +181,33 @@ export default function Home() {
               </h2>
               <p className="mt-6 max-w-md text-sm leading-relaxed text-muted-foreground">
                 No fork. No vendor lock-in. Same tokens, same Radix
-                primitives, same Tailwind conventions. The components use
-                shadcn&apos;s registry format. Copy, paste, own.
+                primitives, same Tailwind conventions. Every primitive ships
+                as a shadcn registry item. Copy, paste, own.
               </p>
+              <Link
+                href="/registry"
+                className="mt-6 inline-flex items-center gap-1.5 text-sm text-[color:var(--accent-blue)] transition-opacity hover:opacity-80"
+              >
+                See all 15 install commands
+                <ArrowUpRight className="h-3.5 w-3.5" />
+              </Link>
             </div>
 
             <div className="flex flex-col gap-5">
               <div className="flex items-center gap-3">
-                <span className="label">Coming in v0.2</span>
+                <span className="label">Install the Interrupt Card</span>
                 <div className="h-px flex-1 bg-gradient-to-r from-border/60 to-transparent" />
               </div>
               <pre className="overflow-x-auto py-2 font-mono text-sm text-foreground">
-                <span className="text-muted-foreground">$</span> npx shadcn
-                add{" "}
+                <span className="text-muted-foreground">$</span> npx shadcn@latest add{" "}
                 <span className="text-[color:var(--accent-blue)]">
-                  https://hitl-kit.dev/r/interrupt-card.json
+                  https://hitl-kit.dev/r/hitl-card.json
                 </span>
               </pre>
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                Components are currently hosted in this repo as reference
-                implementations. Public registry endpoints land in v0.2.
-                Follow on GitHub to track releases.
+                11 UI primitives, 3 shared libs, 1 root registry. All built,
+                hosted at <code className="rounded bg-muted px-1 py-0.5 font-mono text-[10.5px]">/r/*.json</code>. Registry dependencies
+                resolve automatically through the shadcn CLI.
               </p>
             </div>
           </div>

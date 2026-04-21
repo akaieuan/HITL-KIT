@@ -5,9 +5,14 @@ import { BRAND } from "@/lib/content";
 const LINKS = [
   { href: "/paper", key: "paper", label: "Paper" },
   { href: "/components", key: "components", label: "Components" },
+  { href: "/registry", key: "registry", label: "Registry" },
 ];
 
-export function Nav({ active }: { active?: "paper" | "components" | "home" }) {
+export function Nav({
+  active,
+}: {
+  active?: "paper" | "components" | "registry" | "home";
+}) {
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/60 backdrop-blur-xl">
       <div className="mx-auto flex h-12 max-w-6xl items-center justify-between px-6">
