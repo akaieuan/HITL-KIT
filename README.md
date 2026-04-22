@@ -1,42 +1,132 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="./docs/banner.svg">
+  <source media="(prefers-color-scheme: light)" srcset="./docs/banner.svg">
+  <img src="./docs/banner.svg" alt="HITL Kit — Human-in-the-loop AI, measured properly" width="100%">
+</picture>
+
 # HITL Kit
 
 > Human-in-the-loop AI, measured properly.
 
-A design system and component library for human-in-the-loop AI, paired with an open perspective paper on why 95% of enterprise AI pilots fail.
+[**Read the paper**](https://www.hitlkit.dev/paper) · [**Browse components**](https://www.hitlkit.dev/components) · [**Registry install reference**](https://www.hitlkit.dev/registry) · [**GitHub**](https://github.com/akaieuan/HITL-KIT)
 
-**Status:** v0.2 · Publicly deployed at [hitlkit.dev](https://www.hitlkit.dev). 11 primitives installable via shadcn CLI. Paper live at [hitlkit.dev/paper](https://www.hitlkit.dev/paper). End-to-end install verified from the public domain.
-
----
-
-## The thesis
-
-Most AI systems are evaluated on whether they can complete tasks autonomously. But in deployment, they need to *assist* humans, not replace them. That mismatch is why enterprise AI pilots have a 95% failure rate.
-
-**Assist-Not-Complete** is a paradigm for building AI systems that collaborate with humans instead of displacing them. This repo is the paradigm made tangible: a paper that argues it, and a component library that implements it.
-
-Read the full paper at [`/paper`](./content/paper.md) or on the live site.
+**Status:** v0.3 · Publicly deployed at [hitlkit.dev](https://www.hitlkit.dev). 11 primitives installable via shadcn CLI. `@hitl-kit/core` (Zod event schemas) and `@hitl-kit/react` (`HitlEventRenderer`) on main, npm-publishable.
 
 ---
 
-## What's in this repo
+## Why this exists
 
+**95% of enterprise AI pilots fail.** Not because the models are bad — because we measure the wrong thing.
+
+Current benchmarks ask "can the model complete this task autonomously?" But in deployment, real users don't want autonomy. They want an assistant that respects their authority, preserves their agency, and makes them better over time. The benchmark-to-deployment gap is the gap between these two questions.
+
+**HITL Kit is the argument that we should measure AI differently, and the components that make the alternative buildable.**
+
+Three coordinated artifacts, one project:
+
+### 1. A perspective paper
+
+[**An AI Measurement Problem**](https://www.hitlkit.dev/paper). A synthesis of benchmark saturation research (Ott et al., 2022), cognitive-debt findings from AI-assisted learning (Kosmyna et al., 2025), scaffolding theory (Dhillon et al., 2024), uncertainty quantification (Liu et al., 2025), and the MIT NANDA enterprise failure report (Challapally et al., 2025). The paper argues for the **Assist-Not-Complete** paradigm: evaluate AI on whether it assists humans without displacing them, not on whether it can finish the task alone.
+
+### 2. A component library
+
+Eleven React primitives for human-in-the-loop agentic UIs. Each primitive is the physical embodiment of a specific claim from the paper. The [MiniTrace](https://www.hitlkit.dev/components#trace) instantiates the supporting-facts requirement from HotpotQA (Yang et al., 2018). The [AI Generation Scale](https://www.hitlkit.dev/components#ai-scale) operationalises Dhillon's scaffolding principle. The [Interrupt Card](https://www.hitlkit.dev/components#hitl) is the agency-preservation boundary. Every component ties to a research claim.
+
+### 3. A shadcn-compatible registry
+
+Every primitive installs with one CLI command:
+
+```bash
+npx shadcn@latest add https://www.hitlkit.dev/r/hitl-card.json
 ```
-.
-├── content/paper.md              The perspective paper (markdown)
-├── registry.json                 Shadcn registry manifest
-├── public/r/*.json               Built registry endpoints (one per primitive)
-├── src/
-│   ├── app/                      Next.js App Router pages
-│   │   ├── page.tsx              Landing
-│   │   ├── components/page.tsx   Live component showcase
-│   │   ├── paper/page.tsx        Paper renderer (markdown → JSX)
-│   │   └── registry/page.tsx     Install-command reference
-│   ├── components/
-│   │   ├── hitl/                 The 11 primitives + 3 shared lib files
-│   │   └── site/                 Nav, Footer, brand bits
-│   └── lib/                      cn helper, content constants
-└── _reference/                   Original artifacts (PDF, docx, earlier drafts)
+
+No fork, no vendor lock-in, no wrapper SDK. Same tokens, same Radix primitives, same Tailwind conventions as shadcn/ui. The CLI resolves transitive registry dependencies and npm deps automatically. Copy, paste, own.
+
+Together: the paper is the argument, the components are the proof the argument is implementable, the registry is how you adopt it.
+
+---
+
+## The three artifacts (technical)
+
+| Artifact | Distribution | Live at |
+|---|---|---|
+| **Paper** | Markdown in-repo, rendered on site | [hitlkit.dev/paper](https://www.hitlkit.dev/paper) |
+| **Component library** (11 primitives) | Shadcn registry JSON endpoints | [hitlkit.dev/r/*.json](https://www.hitlkit.dev/registry) |
+| **`@hitl-kit/core`** (Zod event schemas) | npm (workspace-linked, publish pending) | [packages/core](./packages/core) |
+| **`@hitl-kit/react`** (`HitlEventRenderer`) | npm (workspace-linked, publish pending) | [packages/react](./packages/react) |
+
+---
+
+## Install a primitive
+
+### Prerequisites
+
+A Tailwind project with shadcn/ui initialized. If you don't have that yet:
+
+```bash
+npx shadcn@latest init
 ```
+
+### Add HITL Kit accent tokens to your globals.css
+
+HITL Kit primitives reference custom CSS variables for kind-semantic color. Paste this into `app/globals.css`:
+
+```css
+:root {
+  --accent-violet:  #a78bfa;
+  --accent-amber:   #fbbf24;
+  --accent-emerald: #4ade80;
+  --accent-rose:    #fb7185;
+  --accent-blue:    #007AFF;
+}
+```
+
+### Install
+
+```bash
+npx shadcn@latest add https://www.hitlkit.dev/r/hitl-card.json
+```
+
+The CLI resolves registry dependencies (`hitl-utils`, `hitl-types`) and npm dependencies (`lucide-react`) automatically.
+
+Swap `hitl-card.json` for any primitive name from the table below. Full install reference with copy-buttons at [hitlkit.dev/registry](https://www.hitlkit.dev/registry).
+
+---
+
+## Use the event renderer (v0.3+)
+
+For agentic UIs, pair the components with `@hitl-kit/core` (Zod event schemas) and `@hitl-kit/react` (`HitlEventRenderer`):
+
+```bash
+pnpm add @hitl-kit/core @hitl-kit/react
+```
+
+```tsx
+import { createRegistry, HitlEventRenderer } from "@hitl-kit/react";
+import { HitlCard } from "@/components/hitl/HitlCard";
+
+const registry = createRegistry({
+  "hitl.card": (event) => (
+    <HitlCard
+      config={{
+        id: event.id ?? "default",
+        kind: event.variant,
+        title: event.title,
+        subtitle: event.subtitle,
+        steps: event.steps,
+        runLabel: event.runLabel,
+        editPlaceholder: event.editPlaceholder,
+        openTab: "human",
+      }}
+    />
+  ),
+});
+
+// later, when your agent emits a validated HITL event:
+<HitlEventRenderer event={event} registry={registry} />;
+```
+
+The renderer validates the event at runtime via the shared Zod schema, narrows on `event.kind`, and mounts the primitive you registered for that kind. Works identically no matter which agent framework produced the event.
 
 ---
 
@@ -58,45 +148,36 @@ Every primitive is the physical embodiment of a claim from the paper.
 | `search-result-card` | Ranked result with relevance bar and metadata. |
 | `approve-reject-row` | The canonical binary decision row. |
 
-Plus 3 shared-lib items (`hitl-utils`, `hitl-types`, `hitl-subagent-meta`) and one `shared-primitives` palette.
+Plus 3 shared-lib items (`hitl-utils`, `hitl-types`, `hitl-subagent-meta`) and one `shared-primitives` palette for the atomic design tokens.
 
 ---
 
-## Install (shadcn registry)
+## What's in this repo
 
-Works today via GitHub raw URLs. Branded URLs land once the site is deployed.
-
-### Prerequisites
-
-A Tailwind project with shadcn/ui initialized. If you don't have that yet:
-
-```bash
-npx shadcn@latest init
 ```
-
-### Add the accent tokens to your globals.css
-
-HITL Kit primitives reference custom CSS variables for kind-semantic color. Paste this into `app/globals.css`:
-
-```css
-:root {
-  --accent-violet:  #a78bfa;
-  --accent-amber:   #fbbf24;
-  --accent-emerald: #4ade80;
-  --accent-rose:    #fb7185;
-  --accent-blue:    #007AFF;
-}
+.
+├── content/paper.md              The perspective paper (markdown)
+├── docs/banner.svg               README hero image
+├── registry.json                 Shadcn registry manifest
+├── public/r/*.json               Built registry endpoints (15 files)
+├── packages/
+│   ├── core/                     @hitl-kit/core (Zod event schemas)
+│   └── react/                    @hitl-kit/react (HitlEventRenderer)
+├── src/
+│   ├── app/                      Next.js App Router pages
+│   │   ├── page.tsx              Landing
+│   │   ├── components/page.tsx   Live component showcase
+│   │   ├── paper/page.tsx        Paper renderer
+│   │   ├── registry/page.tsx     Install-command reference
+│   │   └── test/                 Dev-only registry health dashboard
+│   ├── components/
+│   │   ├── hitl/                 The 11 primitives + 3 shared lib files
+│   │   └── site/                 Nav, Footer, brand bits
+│   └── lib/                      cn helper, content constants
+├── scripts/smoke-test.sh         End-to-end install smoke test
+├── .github/workflows/            CI (registry drift check)
+└── CONTRIBUTING.md               Verification and branch protocol
 ```
-
-### Install a primitive
-
-```bash
-npx shadcn@latest add https://www.hitlkit.dev/r/hitl-card.json
-```
-
-The CLI resolves registry dependencies (`hitl-utils`, `hitl-types`) and npm dependencies (`lucide-react`) automatically.
-
-Swap `hitl-card.json` for any primitive name from the table above. Full install reference with copy buttons at [hitlkit.dev/registry](https://www.hitlkit.dev/registry).
 
 ---
 
@@ -104,18 +185,14 @@ Swap `hitl-card.json` for any primitive name from the table above. Full install 
 
 ```bash
 pnpm install
-pnpm dev          # dev server at http://localhost:3000
-pnpm build        # production build
-pnpm typecheck    # tsc --noEmit
+pnpm dev                # dev server at http://localhost:3000
+pnpm verify             # typecheck + registry drift check + build (run before pushing)
+pnpm smoke-test         # end-to-end install test (requires dev server running)
+pnpm registry:build     # regenerate public/r/*.json after editing a primitive
+pnpm packages:build     # build both @hitl-kit/* packages via tsup
 ```
 
-### Rebuild the registry after editing a primitive
-
-```bash
-pnpm registry:build
-```
-
-This runs `shadcn build` against `registry.json` and regenerates every `public/r/*.json`. Commit those alongside the source files.
+The verification pipeline and contribution protocol are documented in [CONTRIBUTING.md](./CONTRIBUTING.md). Substantial changes should land on a feature branch first so Vercel builds a preview deployment before merging.
 
 ---
 
@@ -125,9 +202,11 @@ This runs `shadcn build` against `registry.json` and regenerates every `public/r
 - **Tailwind CSS v4** (native `@theme` inline)
 - **TypeScript 5**
 - **shadcn CLI** for registry building
+- **Zod 3** for event schemas (`@hitl-kit/core`)
 - **lucide-react** for icons
 - **react-markdown** + remark-gfm for the paper renderer
 - **Geist + JetBrains Mono** for typography
+- **pnpm workspace** monorepo (`packages/core`, `packages/react`, root site)
 
 No global state, no CSS-in-JS runtime, no wrapper SDK. Every component is copy-paste ready and yours to edit once installed.
 
@@ -139,12 +218,12 @@ No global state, no CSS-in-JS runtime, no wrapper SDK. Every component is copy-p
 |---|---|---|
 | **v0.1** | Reference site, 11 primitives as source, paper, shadcn registry built | ✅ Shipped |
 | **v0.2** | Deployed to Vercel at hitlkit.dev. Branded registry URLs at `hitlkit.dev/r/*.json`. `npx shadcn@latest add` verified end-to-end from the public domain. Loop favicon, MIT LICENSE, AssistNotComplete link component. | ✅ Shipped |
-| **v0.2.1** | GitHub Action (`.github/workflows/registry.yml`) that rebuilds the registry on every push/PR and fails CI if `public/r/*.json` drifts from `registry.json`. Contributors have to run `pnpm registry:build` and commit the result. | ✅ Shipped |
-| **v0.3** | `@hitl-kit/core` npm package with Zod event schemas + `<HitlEventRenderer />` | Planned |
-| **v0.4** | Framework adapter: `@hitl-kit/langgraph` with working demo app | Planned |
-| **v0.5** | Second adapter (Vercel AI SDK or Claude Agent SDK) + MCP server | Planned |
+| **v0.2.1** | GitHub Action (`.github/workflows/registry.yml`) rebuilds the registry on every push/PR and fails CI if `public/r/*.json` drifts from `registry.json`. Contributors have to run `pnpm registry:build` and commit the result. Includes `pnpm verify` / `pnpm smoke-test` + dev-only `/test` dashboard. | ✅ Shipped |
+| **v0.3** | `@hitl-kit/core` Zod event schemas for all 11 primitives + `@hitl-kit/react` `<HitlEventRenderer />` dispatcher. pnpm workspace monorepo. Workspace-linked, npm publish pending. | ✅ Shipped |
+| **v0.4** | `@hitl-kit/langgraph` adapter + working Next.js demo app exercising the LangGraph interrupt/resume primitive end-to-end. | Planned |
+| **v0.5** | `@hitl-kit/ai-sdk` (Vercel AI SDK adapter) + `@hitl-kit/mcp` (MCP server exposing primitives as tools for Claude Code / Cursor / Claude Desktop). | Planned |
 
-The goal for v0.3+ is LLM pluggability: an agent in LangGraph or Vercel AI SDK emits a structured HITL event and the renderer mounts the right primitive with the right props. Tool call → UI. No wiring per component.
+**The v0.3+ ambition is LLM pluggability.** An agent running in LangGraph, Vercel AI SDK, Claude Agent SDK, or any MCP-aware client emits a structured HITL event matching a Zod schema. The renderer validates, narrows by `event.kind`, and mounts the right primitive. Tool call → UI, no wiring per component. The paper becomes the protocol; the protocol becomes the platform.
 
 ---
 
@@ -152,17 +231,25 @@ The goal for v0.3+ is LLM pluggability: an agent in LangGraph or Vercel AI SDK e
 
 Issues and PRs welcome. Open an issue first for substantial changes so we can agree on scope.
 
+The verification and branch protocol is documented in [CONTRIBUTING.md](./CONTRIBUTING.md):
+
+- `pnpm verify` before every push
+- `pnpm smoke-test` for anything touching primitives or the registry
+- Feature branch + Vercel preview for substantial changes (new primitives, package restructures)
+- CI fails if `public/r/*.json` is stale
+
 Good first contributions:
+
 - Prop API polish on any primitive
 - Accessibility improvements (ARIA, keyboard navigation)
 - A new primitive with a clear HITL use case, plus its entry in `registry.json`
-- Documentation fixes
+- Documentation fixes or better Zod schema types in `packages/core`
 
 ---
 
 ## License
 
-MIT. Do what you want.
+[MIT](./LICENSE). Do what you want.
 
 ---
 
@@ -172,4 +259,4 @@ Built by [Ieuan King](https://aka4uh.com) ([@akaieuan](https://x.com/akaieuan)).
 
 The component set was originally extracted from [Agatha](https://aka4uh.com), a research-agent workspace, and generalized into an open primitive library.
 
-The paper synthesizes work from Challapally et al. (MIT NANDA 2025), Dhillon et al. (CHI 2024), Kosmyna et al. (MIT 2025), Ott et al. (Nature Comm 2022), Yang et al. (HotpotQA 2018), Zanzotto (JAIR 2019), and others. Full references in the paper.
+The paper synthesizes work from Challapally et al. (MIT NANDA 2025), Dhillon et al. (CHI 2024), Kosmyna et al. (MIT 2025), Ott et al. (Nature Comm 2022), Yang et al. (HotpotQA 2018), Zanzotto (JAIR 2019), Liu et al. (2025), and others. Full references in the paper.
