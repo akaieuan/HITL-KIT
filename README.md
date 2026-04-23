@@ -10,7 +10,7 @@
 
 [**Read the paper**](https://www.hitlkit.dev/paper) · [**Browse components**](https://www.hitlkit.dev/components) · [**Registry install reference**](https://www.hitlkit.dev/registry) · [**GitHub**](https://github.com/akaieuan/HITL-KIT)
 
-**Status:** v0.4 · Publicly deployed at [hitlkit.dev](https://www.hitlkit.dev). 11 primitives installable via shadcn CLI. `@hitl-kit/core` (Zod event schemas), `@hitl-kit/react` (`HitlEventRenderer`), and `@hitl-kit/langgraph` (LangGraph adapter) on main. End-to-end LangGraph interrupt/resume demo at `apps/demo-langgraph`.
+**Status:** v0.5a · Publicly deployed at [hitlkit.dev](https://www.hitlkit.dev). 11 primitives installable via shadcn CLI. `@hitl-kit/core`, `@hitl-kit/react`, `@hitl-kit/langgraph`, and `@hitl-kit/ai-sdk` on main. End-to-end demos for LangGraph interrupt/resume and Vercel AI SDK tool-calls at `apps/demo-langgraph`.
 
 ---
 
@@ -177,6 +177,55 @@ Every primitive has a matching `create<Name>Interrupt` helper that validates aga
 
 ---
 
+## Use with Vercel AI SDK (v0.5a)
+
+`@hitl-kit/ai-sdk` provides 11 typed `tool()` wrappers — one per HITL Kit primitive — that return validated HITL events as tool results. Since AI SDK has no native interrupt primitive, the adapter returns "awaiting human" as a tool-call result; the consumer renders the event and appends a follow-up user message to continue the conversation.
+
+```bash
+pnpm add @hitl-kit/core @hitl-kit/react @hitl-kit/ai-sdk ai zod
+```
+
+Server side, drop the tools into your `generateText` or `streamText` call:
+
+```ts
+import { generateText } from "ai";
+import { hitlCardTool, approveRejectTool } from "@hitl-kit/ai-sdk";
+
+const result = await generateText({
+  model,
+  messages,
+  tools: {
+    requestHumanReview: hitlCardTool({
+      description: "Request human review of a citation before writing it.",
+    }),
+    requestApproval: approveRejectTool(),
+  },
+});
+// If the model calls requestHumanReview, the tool result is a validated HitlCardEvent.
+```
+
+Or import all 11 at once:
+
+```ts
+import { allHitlTools } from "@hitl-kit/ai-sdk";
+await generateText({ model, messages, tools: allHitlTools });
+```
+
+Client side, filter for HITL tool results and render:
+
+```tsx
+import { isHitlToolResult } from "@hitl-kit/ai-sdk";
+import { HitlEventRenderer } from "@hitl-kit/react";
+
+{toolResults.filter(isHitlToolResult).map((r) => (
+  <HitlEventRenderer event={r.result} registry={registry} onAction={handle} />
+))}
+```
+
+**Working demo**: [`apps/demo-langgraph/app/ai-sdk`](./apps/demo-langgraph/app/ai-sdk) — an AI SDK flow showing a typed tool call producing a validated HitlCardEvent, rendering it via `<HitlEventRenderer />`, and composing the follow-up user message on approve/dismiss. Run with `pnpm --filter demo-langgraph dev`, then open `/ai-sdk`.
+
+---
+
 ## The 11 primitives
 
 Every primitive is the physical embodiment of a claim from the paper.
@@ -212,7 +261,8 @@ Plus 3 shared-lib items (`hitl-utils`, `hitl-types`, `hitl-subagent-meta`) and o
 ├── packages/
 │   ├── core/                     @hitl-kit/core (Zod event schemas)
 │   ├── react/                    @hitl-kit/react (HitlEventRenderer)
-│   └── langgraph/                @hitl-kit/langgraph (interrupt helpers)
+│   ├── langgraph/                @hitl-kit/langgraph (interrupt helpers)
+│   └── ai-sdk/                   @hitl-kit/ai-sdk (Vercel AI SDK tool wrappers)
 ├── src/
 │   ├── app/                      Next.js App Router pages
 │   │   ├── page.tsx              Landing
@@ -257,7 +307,8 @@ The verification pipeline and contribution protocol are documented in [CONTRIBUT
 - **react-markdown** + remark-gfm for the paper renderer
 - **Geist + JetBrains Mono** for typography
 - **LangGraph 1.x** via `@hitl-kit/langgraph`
-- **pnpm workspace** monorepo (`packages/core`, `packages/react`, `packages/langgraph`, `apps/demo-langgraph`, root site)
+- **Vercel AI SDK 6.x** via `@hitl-kit/ai-sdk`
+- **pnpm workspace** monorepo (`packages/core`, `packages/react`, `packages/langgraph`, `packages/ai-sdk`, `apps/demo-langgraph`, root site)
 
 No global state, no CSS-in-JS runtime, no wrapper SDK. Every component is copy-paste ready and yours to edit once installed.
 
@@ -272,7 +323,7 @@ No global state, no CSS-in-JS runtime, no wrapper SDK. Every component is copy-p
 | **v0.2.1** | GitHub Action (`.github/workflows/registry.yml`) rebuilds the registry on every push/PR and fails CI if `public/r/*.json` drifts from `registry.json`. Contributors have to run `pnpm registry:build` and commit the result. Includes `pnpm verify` / `pnpm smoke-test` + dev-only `/test` dashboard. | ✅ Shipped |
 | **v0.3** | `@hitl-kit/core` Zod event schemas for all 11 primitives + `@hitl-kit/react` `<HitlEventRenderer />` dispatcher. pnpm workspace monorepo. Workspace-linked, npm publish pending. | ✅ Shipped |
 | **v0.4** | `@hitl-kit/langgraph` adapter with `create<Name>Interrupt` helpers for all 11 primitives, `isHitlInterrupt` type guard. `apps/demo-langgraph` Next.js demo with a real LangGraph `interrupt()` → `<HitlEventRenderer />` → `Command({ resume })` flow, end-to-end verified via HTTP. | ✅ Shipped |
-| **v0.5a** | `@hitl-kit/ai-sdk` adapter for Vercel AI SDK. Tool-call wrappers that return HitlEvent-shaped results; consumer resumes via follow-up messages. | Planned |
+| **v0.5a** | `@hitl-kit/ai-sdk` adapter: 11 typed `tool()` wrappers returning validated HitlEvents. `allHitlTools` bundle + `isHitlToolResult` type guard. Demo tab added to `apps/demo-langgraph` at `/ai-sdk`, verified end-to-end via HTTP. | ✅ Shipped |
 | **v0.5b** | `@hitl-kit/mcp` MCP server exposing primitives as tools for Claude Code / Cursor / Claude Desktop. | Planned |
 
 **The v0.3+ ambition is LLM pluggability.** An agent running in LangGraph, Vercel AI SDK, Claude Agent SDK, or any MCP-aware client emits a structured HITL event matching a Zod schema. The renderer validates, narrows by `event.kind`, and mounts the right primitive. Tool call → UI, no wiring per component. The paper becomes the protocol; the protocol becomes the platform.

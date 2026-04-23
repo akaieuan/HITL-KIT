@@ -5,6 +5,7 @@ const config: NextConfig = {
     "@hitl-kit/core",
     "@hitl-kit/react",
     "@hitl-kit/langgraph",
+    "@hitl-kit/ai-sdk",
   ],
 };
 

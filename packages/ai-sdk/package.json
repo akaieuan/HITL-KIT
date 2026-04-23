@@ -1,0 +1,52 @@
+{
+  "name": "@hitl-kit/ai-sdk",
+  "version": "0.5.0",
+  "description": "Vercel AI SDK adapter for HITL Kit. Typed tool() wrappers that return schema-conformant HITL events so <HitlEventRenderer /> can dispatch them client-side.",
+  "keywords": [
+    "hitl",
+    "human-in-the-loop",
+    "vercel-ai-sdk",
+    "ai",
+    "agents"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hitl-kit/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "ai": ">=4.0.0",
+    "zod": ">=3.0.0"
+  },
+  "devDependencies": {
+    "ai": "^6.0.168",
+    "tsup": "^8.5.0",
+    "typescript": "^5",
+    "zod": "^3.23.0"
+  },
+  "license": "MIT",
+  "author": "Ieuan King <ieuan@ubik.studio>",
+  "homepage": "https://hitlkit.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akaieuan/keyword/HITL-KIT.git",
+    "directory": "packages/ai-sdk"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

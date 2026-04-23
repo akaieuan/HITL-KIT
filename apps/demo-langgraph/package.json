@@ -10,10 +10,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@hitl-kit/ai-sdk": "workspace:*",
     "@hitl-kit/core": "workspace:*",
     "@hitl-kit/langgraph": "workspace:*",
     "@hitl-kit/react": "workspace:*",
     "@langchain/langgraph": "^1.2.9",
+    "ai": "^6.0.168",
     "clsx": "^2.1.1",
     "lucide-react": "^1.8.0",
     "next": "^16.2.4",
