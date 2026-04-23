@@ -10,7 +10,7 @@
 
 [**Read the paper**](https://www.hitlkit.dev/paper) · [**Browse components**](https://www.hitlkit.dev/components) · [**Registry install reference**](https://www.hitlkit.dev/registry) · [**GitHub**](https://github.com/akaieuan/HITL-KIT)
 
-**Status:** v0.3 · Publicly deployed at [hitlkit.dev](https://www.hitlkit.dev). 11 primitives installable via shadcn CLI. `@hitl-kit/core` (Zod event schemas) and `@hitl-kit/react` (`HitlEventRenderer`) on main, npm-publishable.
+**Status:** v0.4 · Publicly deployed at [hitlkit.dev](https://www.hitlkit.dev). 11 primitives installable via shadcn CLI. `@hitl-kit/core` (Zod event schemas), `@hitl-kit/react` (`HitlEventRenderer`), and `@hitl-kit/langgraph` (LangGraph adapter) on main. End-to-end LangGraph interrupt/resume demo at `apps/demo-langgraph`.
 
 ---
 
@@ -130,6 +130,53 @@ The renderer validates the event at runtime via the shared Zod schema, narrows o
 
 ---
 
+## Use with LangGraph (v0.4)
+
+`@hitl-kit/langgraph` turns LangGraph's native `interrupt()` / `Command({ resume })` primitive into a typed HITL event producer. The graph pauses, the UI renders a primitive via `<HitlEventRenderer />`, the human acts, the graph resumes. End-to-end, no glue.
+
+```bash
+pnpm add @hitl-kit/core @hitl-kit/react @hitl-kit/langgraph @langchain/langgraph
+```
+
+Emit an interrupt inside a graph node:
+
+```ts
+import { StateGraph, interrupt } from "@langchain/langgraph";
+import { createHitlCardInterrupt } from "@hitl-kit/langgraph";
+
+// inside a node...
+const approval = interrupt(
+  createHitlCardInterrupt({
+    variant: "review",
+    title: "Citation needs verification",
+    subtitle: "IPCC 2023 · p. 12",
+    steps: [
+      { label: "Flagged by agent", done: true },
+      { label: "Confirm", done: false },
+    ],
+    runLabel: "Confirm & continue",
+  }),
+);
+// graph pauses; Command({ resume: { approved: true } }) causes this line to return { approved: true }
+```
+
+On the client, guard with `isHitlInterrupt` and render through the same `<HitlEventRenderer />`:
+
+```tsx
+import { isHitlInterrupt } from "@hitl-kit/langgraph";
+import { HitlEventRenderer } from "@hitl-kit/react";
+
+if (isHitlInterrupt(interruptValue)) {
+  return <HitlEventRenderer event={interruptValue.event} registry={registry} onAction={onResume} />;
+}
+```
+
+Every primitive has a matching `create<Name>Interrupt` helper that validates against the core Zod schema at emit time, so a malformed event throws inside the graph node rather than surfacing on the client.
+
+**Working demo**: [`apps/demo-langgraph`](./apps/demo-langgraph) — a minimal Next.js app that runs a LangGraph with one interrupt node, renders the Interrupt Card, accepts approval, and resumes the graph. Run it locally with `pnpm --filter demo-langgraph dev`.
+
+---
+
 ## The 11 primitives
 
 Every primitive is the physical embodiment of a claim from the paper.
@@ -160,9 +207,12 @@ Plus 3 shared-lib items (`hitl-utils`, `hitl-types`, `hitl-subagent-meta`) and o
 ├── docs/banner.svg               README hero image
 ├── registry.json                 Shadcn registry manifest
 ├── public/r/*.json               Built registry endpoints (15 files)
+├── apps/
+│   └── demo-langgraph/           End-to-end LangGraph interrupt/resume demo
 ├── packages/
 │   ├── core/                     @hitl-kit/core (Zod event schemas)
-│   └── react/                    @hitl-kit/react (HitlEventRenderer)
+│   ├── react/                    @hitl-kit/react (HitlEventRenderer)
+│   └── langgraph/                @hitl-kit/langgraph (interrupt helpers)
 ├── src/
 │   ├── app/                      Next.js App Router pages
 │   │   ├── page.tsx              Landing
@@ -206,7 +256,8 @@ The verification pipeline and contribution protocol are documented in [CONTRIBUT
 - **lucide-react** for icons
 - **react-markdown** + remark-gfm for the paper renderer
 - **Geist + JetBrains Mono** for typography
-- **pnpm workspace** monorepo (`packages/core`, `packages/react`, root site)
+- **LangGraph 1.x** via `@hitl-kit/langgraph`
+- **pnpm workspace** monorepo (`packages/core`, `packages/react`, `packages/langgraph`, `apps/demo-langgraph`, root site)
 
 No global state, no CSS-in-JS runtime, no wrapper SDK. Every component is copy-paste ready and yours to edit once installed.
 
@@ -220,8 +271,9 @@ No global state, no CSS-in-JS runtime, no wrapper SDK. Every component is copy-p
 | **v0.2** | Deployed to Vercel at hitlkit.dev. Branded registry URLs at `hitlkit.dev/r/*.json`. `npx shadcn@latest add` verified end-to-end from the public domain. Loop favicon, MIT LICENSE, AssistNotComplete link component. | ✅ Shipped |
 | **v0.2.1** | GitHub Action (`.github/workflows/registry.yml`) rebuilds the registry on every push/PR and fails CI if `public/r/*.json` drifts from `registry.json`. Contributors have to run `pnpm registry:build` and commit the result. Includes `pnpm verify` / `pnpm smoke-test` + dev-only `/test` dashboard. | ✅ Shipped |
 | **v0.3** | `@hitl-kit/core` Zod event schemas for all 11 primitives + `@hitl-kit/react` `<HitlEventRenderer />` dispatcher. pnpm workspace monorepo. Workspace-linked, npm publish pending. | ✅ Shipped |
-| **v0.4** | `@hitl-kit/langgraph` adapter + working Next.js demo app exercising the LangGraph interrupt/resume primitive end-to-end. | Planned |
-| **v0.5** | `@hitl-kit/ai-sdk` (Vercel AI SDK adapter) + `@hitl-kit/mcp` (MCP server exposing primitives as tools for Claude Code / Cursor / Claude Desktop). | Planned |
+| **v0.4** | `@hitl-kit/langgraph` adapter with `create<Name>Interrupt` helpers for all 11 primitives, `isHitlInterrupt` type guard. `apps/demo-langgraph` Next.js demo with a real LangGraph `interrupt()` → `<HitlEventRenderer />` → `Command({ resume })` flow, end-to-end verified via HTTP. | ✅ Shipped |
+| **v0.5a** | `@hitl-kit/ai-sdk` adapter for Vercel AI SDK. Tool-call wrappers that return HitlEvent-shaped results; consumer resumes via follow-up messages. | Planned |
+| **v0.5b** | `@hitl-kit/mcp` MCP server exposing primitives as tools for Claude Code / Cursor / Claude Desktop. | Planned |
 
 **The v0.3+ ambition is LLM pluggability.** An agent running in LangGraph, Vercel AI SDK, Claude Agent SDK, or any MCP-aware client emits a structured HITL event matching a Zod schema. The renderer validates, narrows by `event.kind`, and mounts the right primitive. Tool call → UI, no wiring per component. The paper becomes the protocol; the protocol becomes the platform.
 

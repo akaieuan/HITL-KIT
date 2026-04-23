@@ -1,0 +1,51 @@
+{
+  "name": "@hitl-kit/langgraph",
+  "version": "0.4.0",
+  "description": "LangGraph adapter for HITL Kit. Emit schema-conformant HITL events from LangGraph interrupt() nodes and resume with typed Command payloads.",
+  "keywords": [
+    "hitl",
+    "human-in-the-loop",
+    "langgraph",
+    "langchain",
+    "ai",
+    "agents"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hitl-kit/core": "workspace:*"
+  },
+  "peerDependencies": {
+    "@langchain/langgraph": ">=1.0.0"
+  },
+  "devDependencies": {
+    "@langchain/langgraph": "^1.2.9",
+    "tsup": "^8.5.0",
+    "typescript": "^5"
+  },
+  "license": "MIT",
+  "author": "Ieuan King <ieuan@ubik.studio>",
+  "homepage": "https://hitlkit.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akaieuan/HITL-KIT.git",
+    "directory": "packages/langgraph"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}
