@@ -10,7 +10,7 @@
 
 [**Read the paper**](https://www.hitlkit.dev/paper) · [**Browse components**](https://www.hitlkit.dev/components) · [**Registry install reference**](https://www.hitlkit.dev/registry) · [**GitHub**](https://github.com/akaieuan/HITL-KIT)
 
-**Status:** v0.5a · Publicly deployed at [hitlkit.dev](https://www.hitlkit.dev). 11 primitives installable via shadcn CLI. `@hitl-kit/core`, `@hitl-kit/react`, `@hitl-kit/langgraph`, and `@hitl-kit/ai-sdk` on main. End-to-end demos for LangGraph interrupt/resume and Vercel AI SDK tool-calls at `apps/demo-langgraph`.
+**Status:** v0.5 · Publicly deployed at [hitlkit.dev](https://www.hitlkit.dev). 11 primitives installable via shadcn CLI. Five packages live on npm: `@hitl-kit/core`, `@hitl-kit/react`, `@hitl-kit/langgraph`, `@hitl-kit/ai-sdk`, `@hitl-kit/mcp`. End-to-end demos + MCP server verified.
 
 ---
 
@@ -226,6 +226,39 @@ import { HitlEventRenderer } from "@hitl-kit/react";
 
 ---
 
+## Use with MCP (v0.5b) · Claude Code, Cursor, Claude Desktop
+
+`@hitl-kit/mcp` is an MCP server that exposes all 11 primitive event kinds as tools. Drop it into any MCP-aware client and every client's agent can emit schema-validated HITL events. No per-client adapter code.
+
+### Claude Desktop
+
+Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
+
+```json
+{
+  "mcpServers": {
+    "hitl-kit": {
+      "command": "npx",
+      "args": ["-y", "@hitl-kit/mcp"]
+    }
+  }
+}
+```
+
+### Claude Code
+
+```bash
+claude mcp add hitl-kit npx -y @hitl-kit/mcp
+```
+
+### Cursor
+
+Cursor Settings → MCP Servers → Add, same JSON as Claude Desktop.
+
+Once registered and the client is restarted, `hitl_interrupt_card`, `hitl_qa_flow`, and nine more tools are available. Each validates input against the core Zod schema and returns a JSON `HitlEvent` ready for your UI.
+
+---
+
 ## The 11 primitives
 
 Every primitive is the physical embodiment of a claim from the paper.
@@ -262,7 +295,8 @@ Plus 3 shared-lib items (`hitl-utils`, `hitl-types`, `hitl-subagent-meta`) and o
 │   ├── core/                     @hitl-kit/core (Zod event schemas)
 │   ├── react/                    @hitl-kit/react (HitlEventRenderer)
 │   ├── langgraph/                @hitl-kit/langgraph (interrupt helpers)
-│   └── ai-sdk/                   @hitl-kit/ai-sdk (Vercel AI SDK tool wrappers)
+│   ├── ai-sdk/                   @hitl-kit/ai-sdk (Vercel AI SDK tool wrappers)
+│   └── mcp/                      @hitl-kit/mcp (MCP stdio server, hitl-kit-mcp bin)
 ├── src/
 │   ├── app/                      Next.js App Router pages
 │   │   ├── page.tsx              Landing
@@ -308,7 +342,8 @@ The verification pipeline and contribution protocol are documented in [CONTRIBUT
 - **Geist + JetBrains Mono** for typography
 - **LangGraph 1.x** via `@hitl-kit/langgraph`
 - **Vercel AI SDK 6.x** via `@hitl-kit/ai-sdk`
-- **pnpm workspace** monorepo (`packages/core`, `packages/react`, `packages/langgraph`, `packages/ai-sdk`, `apps/demo-langgraph`, root site)
+- **MCP TypeScript SDK 1.x** via `@hitl-kit/mcp`
+- **pnpm workspace** monorepo (`packages/core`, `packages/react`, `packages/langgraph`, `packages/ai-sdk`, `packages/mcp`, `apps/demo-langgraph`, root site)
 
 No global state, no CSS-in-JS runtime, no wrapper SDK. Every component is copy-paste ready and yours to edit once installed.
 
@@ -324,7 +359,7 @@ No global state, no CSS-in-JS runtime, no wrapper SDK. Every component is copy-p
 | **v0.3** | `@hitl-kit/core` Zod event schemas for all 11 primitives + `@hitl-kit/react` `<HitlEventRenderer />` dispatcher. pnpm workspace monorepo. Workspace-linked, npm publish pending. | ✅ Shipped |
 | **v0.4** | `@hitl-kit/langgraph` adapter with `create<Name>Interrupt` helpers for all 11 primitives, `isHitlInterrupt` type guard. `apps/demo-langgraph` Next.js demo with a real LangGraph `interrupt()` → `<HitlEventRenderer />` → `Command({ resume })` flow, end-to-end verified via HTTP. | ✅ Shipped |
 | **v0.5a** | `@hitl-kit/ai-sdk` adapter: 11 typed `tool()` wrappers returning validated HitlEvents. `allHitlTools` bundle + `isHitlToolResult` type guard. Demo tab added to `apps/demo-langgraph` at `/ai-sdk`, verified end-to-end via HTTP. | ✅ Shipped |
-| **v0.5b** | `@hitl-kit/mcp` MCP server exposing primitives as tools for Claude Code / Cursor / Claude Desktop. | Planned |
+| **v0.5b** | `@hitl-kit/mcp` MCP server exposing all 11 primitive event kinds as tools. Each tool's JSON Schema is derived from the core Zod schema; input is Zod-validated at call time. Verified via stdio: `initialize` handshake + `tools/list` returns all 11 `hitl_*` tools with correct schemas. Works with Claude Desktop, Claude Code, Cursor, any MCP-aware client. | ✅ Shipped |
 
 **The v0.3+ ambition is LLM pluggability.** An agent running in LangGraph, Vercel AI SDK, Claude Agent SDK, or any MCP-aware client emits a structured HITL event matching a Zod schema. The renderer validates, narrows by `event.kind`, and mounts the right primitive. Tool call → UI, no wiring per component. The paper becomes the protocol; the protocol becomes the platform.
 
