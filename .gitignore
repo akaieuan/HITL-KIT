@@ -13,6 +13,11 @@ node_modules/
 /out/
 next-env.d.ts
 
+# nested Next.js build outputs in monorepo apps
+**/.next/
+**/out/
+apps/*/next-env.d.ts
+
 # production
 /build
 /dist

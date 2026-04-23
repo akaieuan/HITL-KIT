@@ -1,1 +1,0 @@
-self.__NEXT_FONT_MANIFEST="{\n  \"app\": {\n    \"[project]/apps/demo-langgraph/app/page\": [\n      \"static/media/caa3a2e1cccd8315-s.p.16t1db8_9y2o~.woff2\",\n      \"static/media/70bc3e132a0a741e-s.p.1409xf.ylxg8g.woff2\"\n    ]\n  },\n  \"appUsingSizeAdjust\": true,\n  \"pages\": {},\n  \"pagesUsingSizeAdjust\": false\n}"
