@@ -14,7 +14,7 @@ pnpm add @hitl-kit/core @hitl-kit/react @hitl-kit/ai-sdk ai zod
 
 Unlike LangGraph, Vercel AI SDK doesn't have a native `interrupt()` /
 `Command` primitive. The canonical way for an agent to "ask the human
-something" in AI SDK is to call a tool. This adapter gives you 11
+something" in AI SDK is to call a tool. This adapter gives you 15
 typed `tool()` wrappers — one per HITL Kit primitive — whose input
 schemas mirror the primitive's event shape and whose return values are
 validated HITL events ready to pass to `<HitlEventRenderer />`.
@@ -96,6 +96,10 @@ await generateText({ model, messages, tools: allHitlTools });
 | `batchQueueTool` | `batch.queue` | `BatchQueueEvent` |
 | `searchResultTool` | `result.search` | `SearchResultEvent` |
 | `approveRejectTool` | `approval.binary` | `ApproveRejectEvent` |
+| `diffResultTool` *(v0.6a)* | `result.diff` | `DiffResultEvent` |
+| `citationResultTool` *(v0.6a)* | `result.citation` | `CitationResultEvent` |
+| `editablePlanTool` *(v0.6a)* | `plan.editable` | `EditablePlanEvent` |
+| `toolCallPreviewTool` *(v0.6a)* | `tool.call` | `ToolCallPreviewEvent` |
 
 Each factory accepts `{ description?: string }` so you can shape the
 agent's mental model of when to call the tool. The validation happens

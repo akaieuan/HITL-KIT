@@ -253,6 +253,74 @@
           "target": "components/hitl/SharedPrimitives.tsx"
         }
       ]
+    },
+    {
+      "name": "diff-result",
+      "type": "registry:ui",
+      "title": "Diff Result",
+      "description": "Before/after diff card for proposed text or code edits. Per-hunk red/green strips, accept and reject states. The HITL-AI primitive for any in-place edit the human should approve before it lands.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [
+        "https://www.hitlkit.dev/r/hitl-utils.json"
+      ],
+      "files": [
+        {
+          "path": "src/components/hitl/DiffResult.tsx",
+          "type": "registry:ui",
+          "target": "components/hitl/DiffResult.tsx"
+        }
+      ]
+    },
+    {
+      "name": "citation-result",
+      "type": "registry:ui",
+      "title": "Citation Result",
+      "description": "Single source-backed citation card. Claim on top, source attribution below, optional supporting quote and confidence badge. Verify or reject.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [
+        "https://www.hitlkit.dev/r/hitl-utils.json"
+      ],
+      "files": [
+        {
+          "path": "src/components/hitl/CitationResult.tsx",
+          "type": "registry:ui",
+          "target": "components/hitl/CitationResult.tsx"
+        }
+      ]
+    },
+    {
+      "name": "editable-plan",
+      "type": "registry:ui",
+      "title": "Editable Plan",
+      "description": "Multi-step plan the human can reorder, rename, add to, or delete from before the agent executes. Locked steps cannot be removed.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [
+        "https://www.hitlkit.dev/r/hitl-utils.json"
+      ],
+      "files": [
+        {
+          "path": "src/components/hitl/EditablePlan.tsx",
+          "type": "registry:ui",
+          "target": "components/hitl/EditablePlan.tsx"
+        }
+      ]
+    },
+    {
+      "name": "tool-call-preview",
+      "type": "registry:ui",
+      "title": "Tool Call Preview",
+      "description": "Preview a tool call (name, args, optional rationale and signals) so the human can approve or reject before execution. Pairs with the gates layer for confidence/cost/scope checks.",
+      "dependencies": ["lucide-react"],
+      "registryDependencies": [
+        "https://www.hitlkit.dev/r/hitl-utils.json"
+      ],
+      "files": [
+        {
+          "path": "src/components/hitl/ToolCallPreview.tsx",
+          "type": "registry:ui",
+          "target": "components/hitl/ToolCallPreview.tsx"
+        }
+      ]
     }
   ]
 }

@@ -1,6 +1,6 @@
 {
   "name": "@hitl-kit/react",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "HitlEventRenderer, a typed dispatcher that maps validated HITL events to React primitives. Pair with @hitl-kit/core and any shadcn-installed HITL primitives.",
   "keywords": [
     "hitl",

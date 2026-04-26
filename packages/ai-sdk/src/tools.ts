@@ -12,6 +12,10 @@ import {
   BatchQueueEventSchema,
   SearchResultEventSchema,
   ApproveRejectEventSchema,
+  DiffResultEventSchema,
+  CitationResultEventSchema,
+  EditablePlanEventSchema,
+  ToolCallPreviewEventSchema,
   type HitlCardEvent,
   type SubagentStatusEvent,
   type MiniTraceEvent,
@@ -23,6 +27,10 @@ import {
   type BatchQueueEvent,
   type SearchResultEvent,
   type ApproveRejectEvent,
+  type DiffResultEvent,
+  type CitationResultEvent,
+  type EditablePlanEvent,
+  type ToolCallPreviewEvent,
 } from "@hitl-kit/core";
 
 /**
@@ -302,6 +310,112 @@ export function approveRejectTool(options: { description?: string } = {}) {
   });
 }
 
+/* ─── 12. Diff Result ───────────────────────────────────────────────────── */
+
+export function diffResultTool(options: { description?: string } = {}) {
+  return tool({
+    description:
+      options.description ??
+      "Show the human a proposed before/after diff for a text or code edit. Use whenever the agent wants to apply an in-place edit and the human should accept or reject before it lands.",
+    inputSchema: z.object({
+      title: z.string(),
+      subtitle: z.string().optional(),
+      language: z.string().optional(),
+      hunks: z
+        .array(
+          z.object({
+            before: z.string(),
+            after: z.string(),
+            startLine: z.number().int().optional(),
+          }),
+        )
+        .min(1),
+      acceptLabel: z.string().optional(),
+      rejectLabel: z.string().optional(),
+    }),
+    execute: async (input): Promise<DiffResultEvent> =>
+      DiffResultEventSchema.parse({ kind: "result.diff", ...input }),
+  });
+}
+
+/* ─── 13. Citation Result ───────────────────────────────────────────────── */
+
+export function citationResultTool(options: { description?: string } = {}) {
+  return tool({
+    description:
+      options.description ??
+      "Surface a single source-backed citation for a claim the agent is making. Use when the agent wants the human to verify the source supports the claim.",
+    inputSchema: z.object({
+      claim: z.string(),
+      source: z.object({
+        title: z.string(),
+        authors: z.string(),
+        year: z.union([z.number(), z.string()]),
+        venue: z.string().optional(),
+        url: z.string().url().optional(),
+        quote: z.string().optional(),
+        pages: z.string().optional(),
+      }),
+      confidence: z.number().min(0).max(1).optional(),
+    }),
+    execute: async (input): Promise<CitationResultEvent> =>
+      CitationResultEventSchema.parse({ kind: "result.citation", ...input }),
+  });
+}
+
+/* ─── 14. Editable Plan ─────────────────────────────────────────────────── */
+
+export function editablePlanTool(options: { description?: string } = {}) {
+  return tool({
+    description:
+      options.description ??
+      "Surface a multi-step plan the human can edit, reorder, or delete steps from before the agent executes. Steps marked locked cannot be removed.",
+    inputSchema: z.object({
+      title: z.string(),
+      subtitle: z.string().optional(),
+      steps: z
+        .array(
+          z.object({
+            id: z.string(),
+            label: z.string(),
+            detail: z.string().optional(),
+            locked: z.boolean().optional(),
+          }),
+        )
+        .min(1),
+      submitLabel: z.string().optional(),
+    }),
+    execute: async (input): Promise<EditablePlanEvent> =>
+      EditablePlanEventSchema.parse({ kind: "plan.editable", ...input }),
+  });
+}
+
+/* ─── 15. Tool Call Preview ─────────────────────────────────────────────── */
+
+export function toolCallPreviewTool(options: { description?: string } = {}) {
+  return tool({
+    description:
+      options.description ??
+      "Preview a tool call (name, args, optional rationale and signals) so the human can approve or reject before execution. Use for destructive or high-stakes tool calls.",
+    inputSchema: z.object({
+      toolName: z.string(),
+      rationale: z.string().optional(),
+      args: z.record(z.string(), z.unknown()),
+      signals: z
+        .object({
+          confidence: z.number().min(0).max(1).optional(),
+          costUsd: z.number().min(0).optional(),
+          scope: z.array(z.string()).optional(),
+        })
+        .optional(),
+      approveLabel: z.string().optional(),
+      rejectLabel: z.string().optional(),
+    }),
+    execute: async (input): Promise<ToolCallPreviewEvent> =>
+      ToolCallPreviewEventSchema.parse({ kind: "tool.call", ...input }),
+  });
+}
+
 /**
  * Convenience bundle containing every HITL Kit tool. Spread into
  * `tools` when you want the full set available to the agent. Narrow
@@ -319,6 +433,10 @@ export const allHitlTools = {
   presentBatchDecisions: batchQueueTool(),
   showSearchResult: searchResultTool(),
   requestApproval: approveRejectTool(),
+  showDiff: diffResultTool(),
+  showCitation: citationResultTool(),
+  showEditablePlan: editablePlanTool(),
+  previewToolCall: toolCallPreviewTool(),
 };
 
 // Suppress unused-export linting for the shared helper pattern.

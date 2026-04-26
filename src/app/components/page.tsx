@@ -16,6 +16,13 @@ import { BatchQueue, type BatchItem } from "@/components/hitl/BatchQueue";
 import { SearchResultCard } from "@/components/hitl/SearchResultCard";
 import { ApproveRejectRow } from "@/components/hitl/ApproveRejectRow";
 import { SharedPrimitives } from "@/components/hitl/SharedPrimitives";
+import { DiffResult, DEMO_DIFF } from "@/components/hitl/DiffResult";
+import { CitationResult, DEMO_CITATION } from "@/components/hitl/CitationResult";
+import { EditablePlan, DEMO_PLAN } from "@/components/hitl/EditablePlan";
+import {
+  ToolCallPreview,
+  DEMO_TOOL_CALL,
+} from "@/components/hitl/ToolCallPreview";
 import { SEARCH_RESULTS } from "@/components/hitl/data";
 
 import type { AgentStatus, ApprovalStatus } from "@/components/hitl/types";
@@ -386,6 +393,62 @@ function SharedPrimitivesSection() {
   );
 }
 
+function DiffResultSection() {
+  return (
+    <Section
+      id="diff"
+      label="Diff Result"
+      description="Before/after diff for a proposed text or code edit. Per-hunk red/green strips. Drop into any agent loop where the human should see exactly what will change before it lands."
+    >
+      <Demo label="Markdown rewrite" hint="Click Apply edit to confirm">
+        <DiffResult config={DEMO_DIFF} />
+      </Demo>
+    </Section>
+  );
+}
+
+function CitationResultSection() {
+  return (
+    <Section
+      id="citation"
+      label="Citation Result"
+      description="Single source-backed citation card. Claim on top, source attribution below, expandable supporting quote, and an optional confidence badge."
+    >
+      <Demo label="Cited claim" hint="Expand the supporting quote">
+        <CitationResult config={DEMO_CITATION} />
+      </Demo>
+    </Section>
+  );
+}
+
+function EditablePlanSection() {
+  return (
+    <Section
+      id="plan"
+      label="Editable Plan"
+      description="Multi-step plan the human can rename, reorder, add to, or delete from before the agent executes. Steps marked locked cannot be removed."
+    >
+      <Demo label="Research plan" hint="Edit any unlocked step">
+        <EditablePlan config={DEMO_PLAN} />
+      </Demo>
+    </Section>
+  );
+}
+
+function ToolCallPreviewSection() {
+  return (
+    <Section
+      id="tool-call"
+      label="Tool Call Preview"
+      description="Preview a tool call (name, args, optional rationale and signals) so the human can approve or reject before execution. Pairs with the gates layer for confidence, cost, and scope checks."
+    >
+      <Demo label="Outbound email" hint="Expand Arguments to inspect">
+        <ToolCallPreview config={DEMO_TOOL_CALL} />
+      </Demo>
+    </Section>
+  );
+}
+
 // ─── TOC ─────────────────────────────────────────────────────────────────────
 
 const TOC = [
@@ -401,6 +464,10 @@ const TOC = [
   { id: "search-cards", label: "Search Result Cards" },
   { id: "approval", label: "Approve / Reject" },
   { id: "shared", label: "Shared Primitives" },
+  { id: "diff", label: "Diff Result" },
+  { id: "citation", label: "Citation Result" },
+  { id: "plan", label: "Editable Plan" },
+  { id: "tool-call", label: "Tool Call Preview" },
 ];
 
 export default function ComponentsPage() {
@@ -479,6 +546,10 @@ export default function ComponentsPage() {
           <SearchCardsSection />
           <ApprovalSection />
           <SharedPrimitivesSection />
+          <DiffResultSection />
+          <CitationResultSection />
+          <EditablePlanSection />
+          <ToolCallPreviewSection />
         </main>
       </div>
 

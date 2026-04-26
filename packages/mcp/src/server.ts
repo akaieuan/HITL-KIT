@@ -8,7 +8,7 @@ import { z } from "zod";
 import { HITL_TOOLS, TOOL_BY_NAME } from "./tools";
 
 /**
- * Build an MCP server that exposes the 11 HITL primitive event kinds
+ * Build an MCP server that exposes the 15 HITL primitive event kinds
  * as tools. Each tool validates input against the core Zod schema
  * and returns the fully typed HitlEvent as structured tool content.
  *
@@ -19,7 +19,7 @@ export function createHitlKitServer(): Server {
   const server = new Server(
     {
       name: "hitl-kit",
-      version: "0.5.0",
+      version: "0.6.0",
     },
     {
       capabilities: {

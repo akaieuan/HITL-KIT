@@ -126,10 +126,17 @@ Every HITL Kit primitive has a matching interrupt helper:
 | `createBatchQueueInterrupt` | `batch.queue` |
 | `createSearchResultInterrupt` | `result.search` |
 | `createApproveRejectInterrupt` | `approval.binary` |
+| `createDiffResultInterrupt` *(v0.6a)* | `result.diff` |
+| `createCitationResultInterrupt` *(v0.6a)* | `result.citation` |
+| `createEditablePlanInterrupt` *(v0.6a)* | `plan.editable` |
+| `createToolCallPreviewInterrupt` *(v0.6a)* | `tool.call` |
 
 Each helper validates the payload against the corresponding Zod schema
 from `@hitl-kit/core` and throws synchronously if the event is malformed.
 No more shipping a broken event to the UI.
+
+`isEditablePlanResume(value)` is a runtime type guard for the resume
+payload an editable-plan interrupt expects (`{ steps: PlanStep[]; cancelled?: boolean }`).
 
 ---
 
@@ -139,6 +146,6 @@ No more shipping a broken event to the UI.
 - **Renderer** → [@hitl-kit/react](../react)
 - **Components** → [hitlkit.dev/registry](https://www.hitlkit.dev/registry)
 - **Paper** → [hitlkit.dev/paper](https://www.hitlkit.dev/paper)
-- **Live demo** (coming with v0.4) → `apps/demo-langgraph`
+- **Live demo** → `apps/demo-langgraph` (Run `pnpm --filter demo-langgraph dev`)
 
 MIT © Ieuan King.

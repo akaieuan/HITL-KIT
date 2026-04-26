@@ -1,6 +1,6 @@
 {
   "name": "@hitl-kit/ai-sdk",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "Vercel AI SDK adapter for HITL Kit. Typed tool() wrappers that return schema-conformant HITL events so <HitlEventRenderer /> can dispatch them client-side.",
   "keywords": [
     "hitl",

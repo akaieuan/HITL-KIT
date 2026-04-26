@@ -1,6 +1,6 @@
 {
   "name": "demo-langgraph",
-  "version": "0.4.0",
+  "version": "0.6.0",
   "private": true,
   "description": "End-to-end demo: LangGraph agent emits a HITL interrupt, the UI renders it via <HitlEventRenderer />, the user approves, the graph resumes.",
   "scripts": {

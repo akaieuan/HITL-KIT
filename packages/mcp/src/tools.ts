@@ -12,6 +12,10 @@ import {
   BatchQueueEventSchema,
   SearchResultEventSchema,
   ApproveRejectEventSchema,
+  DiffResultEventSchema,
+  CitationResultEventSchema,
+  EditablePlanEventSchema,
+  ToolCallPreviewEventSchema,
   type HitlEvent,
 } from "@hitl-kit/core";
 
@@ -123,6 +127,30 @@ export const HITL_TOOLS: HitlTool[] = [
     "approval.binary",
     "Ask the human for a binary approve/reject decision on a specific item.",
     ApproveRejectEventSchema,
+  ),
+  defineTool(
+    "hitl_diff_result",
+    "result.diff",
+    "Show the human a proposed before/after diff for a text or code edit. Use whenever the agent wants to apply an in-place edit and the human should accept or reject before it lands.",
+    DiffResultEventSchema,
+  ),
+  defineTool(
+    "hitl_citation_result",
+    "result.citation",
+    "Surface a single source-backed citation for a claim the agent is making. Use when the agent wants the human to verify the source supports the claim.",
+    CitationResultEventSchema,
+  ),
+  defineTool(
+    "hitl_editable_plan",
+    "plan.editable",
+    "Surface a multi-step plan the human can edit, reorder, or delete steps from before the agent executes. Steps marked locked cannot be removed.",
+    EditablePlanEventSchema,
+  ),
+  defineTool(
+    "hitl_tool_call",
+    "tool.call",
+    "Preview a tool call (name, args, optional rationale and signals) so the human can approve or reject before execution. Use for destructive or high-stakes tool calls.",
+    ToolCallPreviewEventSchema,
   ),
 ];
 

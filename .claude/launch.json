@@ -6,6 +6,18 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["dev"],
       "port": 3000
+    },
+    {
+      "name": "HITL Kit (production)",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["start"],
+      "port": 3000
+    },
+    {
+      "name": "demo-langgraph",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "demo-langgraph", "dev"],
+      "port": 3100
     }
   ]
 }

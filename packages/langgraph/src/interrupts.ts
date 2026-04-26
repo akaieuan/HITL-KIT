@@ -10,6 +10,10 @@ import {
   BatchQueueEventSchema,
   SearchResultEventSchema,
   ApproveRejectEventSchema,
+  DiffResultEventSchema,
+  CitationResultEventSchema,
+  EditablePlanEventSchema,
+  ToolCallPreviewEventSchema,
   type HitlEvent,
   type HitlCardEvent,
   type SubagentStatusEvent,
@@ -22,6 +26,10 @@ import {
   type BatchQueueEvent,
   type SearchResultEvent,
   type ApproveRejectEvent,
+  type DiffResultEvent,
+  type CitationResultEvent,
+  type EditablePlanEvent,
+  type ToolCallPreviewEvent,
 } from "@hitl-kit/core";
 import type { HitlInterruptPayload } from "./types";
 
@@ -178,4 +186,71 @@ export function createApproveRejectInterrupt(
     ...payload,
   });
   return wrap(event, meta);
+}
+
+/* ─── 12. Diff Result ───────────────────────────────────────────────────── */
+
+export function createDiffResultInterrupt(
+  payload: Omit<DiffResultEvent, "kind">,
+  meta?: Record<string, unknown>,
+): HitlInterruptPayload<DiffResultEvent> {
+  const event = DiffResultEventSchema.parse({ kind: "result.diff", ...payload });
+  return wrap(event, meta);
+}
+
+/* ─── 13. Citation Result ───────────────────────────────────────────────── */
+
+export function createCitationResultInterrupt(
+  payload: Omit<CitationResultEvent, "kind">,
+  meta?: Record<string, unknown>,
+): HitlInterruptPayload<CitationResultEvent> {
+  const event = CitationResultEventSchema.parse({
+    kind: "result.citation",
+    ...payload,
+  });
+  return wrap(event, meta);
+}
+
+/* ─── 14. Editable Plan ─────────────────────────────────────────────────── */
+
+export function createEditablePlanInterrupt(
+  payload: Omit<EditablePlanEvent, "kind">,
+  meta?: Record<string, unknown>,
+): HitlInterruptPayload<EditablePlanEvent> {
+  const event = EditablePlanEventSchema.parse({
+    kind: "plan.editable",
+    ...payload,
+  });
+  return wrap(event, meta);
+}
+
+/* ─── 15. Tool Call Preview ─────────────────────────────────────────────── */
+
+export function createToolCallPreviewInterrupt(
+  payload: Omit<ToolCallPreviewEvent, "kind">,
+  meta?: Record<string, unknown>,
+): HitlInterruptPayload<ToolCallPreviewEvent> {
+  const event = ToolCallPreviewEventSchema.parse({
+    kind: "tool.call",
+    ...payload,
+  });
+  return wrap(event, meta);
+}
+
+/**
+ * Resume payload for an EditablePlan interrupt. Use the type guard
+ * `isEditablePlanResume()` to narrow `Command({ resume })` payloads on
+ * the server side after a human submits the edited plan.
+ */
+export interface EditablePlanResume {
+  steps: EditablePlanEvent["steps"];
+  cancelled?: boolean;
+}
+
+export function isEditablePlanResume(
+  value: unknown,
+): value is EditablePlanResume {
+  if (typeof value !== "object" || value === null) return false;
+  const v = value as { steps?: unknown };
+  return Array.isArray(v.steps);
 }

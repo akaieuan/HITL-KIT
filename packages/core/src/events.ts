@@ -189,6 +189,90 @@ export const ApproveRejectEventSchema = z.object({
 });
 export type ApproveRejectEvent = z.infer<typeof ApproveRejectEventSchema>;
 
+/* ─── 12. Diff Result ───────────────────────────────────────────────────── */
+
+export const DiffHunkSchema = z.object({
+  before: z.string(),
+  after: z.string(),
+  startLine: z.number().int().optional(),
+});
+export type DiffHunk = z.infer<typeof DiffHunkSchema>;
+
+export const DiffResultEventSchema = z.object({
+  kind: z.literal("result.diff"),
+  id: z.string().optional(),
+  title: z.string(),
+  subtitle: z.string().optional(),
+  language: z.string().optional(),
+  hunks: z.array(DiffHunkSchema).min(1),
+  acceptLabel: z.string().optional(),
+  rejectLabel: z.string().optional(),
+});
+export type DiffResultEvent = z.infer<typeof DiffResultEventSchema>;
+
+/* ─── 13. Citation Result ───────────────────────────────────────────────── */
+
+export const CitationSourceSchema = z.object({
+  title: z.string(),
+  authors: z.string(),
+  year: z.union([z.number(), z.string()]),
+  venue: z.string().optional(),
+  url: z.string().url().optional(),
+  quote: z.string().optional(),
+  pages: z.string().optional(),
+});
+export type CitationSource = z.infer<typeof CitationSourceSchema>;
+
+export const CitationResultEventSchema = z.object({
+  kind: z.literal("result.citation"),
+  id: z.string().optional(),
+  claim: z.string(),
+  source: CitationSourceSchema,
+  confidence: z.number().min(0).max(1).optional(),
+});
+export type CitationResultEvent = z.infer<typeof CitationResultEventSchema>;
+
+/* ─── 14. Editable Plan ─────────────────────────────────────────────────── */
+
+export const PlanStepSchema = z.object({
+  id: z.string(),
+  label: z.string(),
+  detail: z.string().optional(),
+  locked: z.boolean().optional(),
+});
+export type PlanStep = z.infer<typeof PlanStepSchema>;
+
+export const EditablePlanEventSchema = z.object({
+  kind: z.literal("plan.editable"),
+  id: z.string().optional(),
+  title: z.string(),
+  subtitle: z.string().optional(),
+  steps: z.array(PlanStepSchema).min(1),
+  submitLabel: z.string().optional(),
+});
+export type EditablePlanEvent = z.infer<typeof EditablePlanEventSchema>;
+
+/* ─── 15. Tool Call Preview ─────────────────────────────────────────────── */
+
+export const ToolCallSignalsSchema = z.object({
+  confidence: z.number().min(0).max(1).optional(),
+  costUsd: z.number().min(0).optional(),
+  scope: z.array(z.string()).optional(),
+});
+export type ToolCallSignals = z.infer<typeof ToolCallSignalsSchema>;
+
+export const ToolCallPreviewEventSchema = z.object({
+  kind: z.literal("tool.call"),
+  id: z.string().optional(),
+  toolName: z.string(),
+  rationale: z.string().optional(),
+  args: z.record(z.string(), z.unknown()),
+  signals: ToolCallSignalsSchema.optional(),
+  approveLabel: z.string().optional(),
+  rejectLabel: z.string().optional(),
+});
+export type ToolCallPreviewEvent = z.infer<typeof ToolCallPreviewEventSchema>;
+
 /* ─── The discriminated union ───────────────────────────────────────────── */
 
 /**
@@ -208,6 +292,10 @@ export const HitlEventSchema = z.discriminatedUnion("kind", [
   BatchQueueEventSchema,
   SearchResultEventSchema,
   ApproveRejectEventSchema,
+  DiffResultEventSchema,
+  CitationResultEventSchema,
+  EditablePlanEventSchema,
+  ToolCallPreviewEventSchema,
 ]);
 
 export type HitlEvent = z.infer<typeof HitlEventSchema>;
@@ -230,4 +318,8 @@ export const HITL_EVENT_KINDS = [
   "batch.queue",
   "result.search",
   "approval.binary",
+  "result.diff",
+  "result.citation",
+  "plan.editable",
+  "tool.call",
 ] as const satisfies readonly HitlEventKind[];

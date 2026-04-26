@@ -1,6 +1,6 @@
 {
   "name": "@hitl-kit/core",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Zod event schemas for human-in-the-loop AI primitives. Framework-agnostic protocol shared by every HITL Kit adapter.",
   "keywords": [
     "hitl",

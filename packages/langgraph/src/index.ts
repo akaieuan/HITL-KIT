@@ -19,4 +19,8 @@ export type {
   BatchQueueEvent,
   SearchResultEvent,
   ApproveRejectEvent,
+  DiffResultEvent,
+  CitationResultEvent,
+  EditablePlanEvent,
+  ToolCallPreviewEvent,
 } from "@hitl-kit/core";

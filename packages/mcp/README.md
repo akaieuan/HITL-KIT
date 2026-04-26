@@ -1,6 +1,6 @@
 # @hitl-kit/mcp
 
-> MCP server for [HITL Kit](https://hitlkit.dev). Exposes the 11 HITL primitive event kinds as Model Context Protocol tools so Claude Code, Cursor, Claude Desktop, and any MCP-aware client can emit schema-validated human-in-the-loop events.
+> MCP server for [HITL Kit](https://hitlkit.dev). Exposes the 15 HITL primitive event kinds as Model Context Protocol tools so Claude Code, Cursor, Claude Desktop, and any MCP-aware client can emit schema-validated human-in-the-loop events.
 
 ---
 
@@ -87,6 +87,10 @@ Or add manually to your Claude Code settings (`~/.claude/mcp-servers.json` or pe
 | `hitl_batch_queue` | `batch.queue` |
 | `hitl_search_result` | `result.search` |
 | `hitl_approve_reject` | `approval.binary` |
+| `hitl_diff_result` *(v0.6a)* | `result.diff` |
+| `hitl_citation_result` *(v0.6a)* | `result.citation` |
+| `hitl_editable_plan` *(v0.6a)* | `plan.editable` |
+| `hitl_tool_call` *(v0.6a)* | `tool.call` |
 
 Each tool's input JSON Schema is generated from the matching Zod
 schema in `@hitl-kit/core` (minus the `kind` discriminator, which the
@@ -122,7 +126,7 @@ pnpm --filter @hitl-kit/mcp build
 ```
 
 Send a `list-tools` request via MCP Inspector or any stdio client;
-you should get all 11 `hitl_*` tools. Calling one with valid input
+you should get all 15 `hitl_*` tools. Calling one with valid input
 returns a HitlEvent; calling with invalid input returns a structured
 Zod error.
 

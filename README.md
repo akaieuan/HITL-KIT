@@ -10,7 +10,7 @@
 
 [**Read the paper**](https://www.hitlkit.dev/paper) · [**Browse components**](https://www.hitlkit.dev/components) · [**Registry install reference**](https://www.hitlkit.dev/registry) · [**GitHub**](https://github.com/akaieuan/HITL-KIT)
 
-**Status:** v0.5 · Publicly deployed at [hitlkit.dev](https://www.hitlkit.dev). 11 primitives installable via shadcn CLI. Five packages live on npm: `@hitl-kit/core`, `@hitl-kit/react`, `@hitl-kit/langgraph`, `@hitl-kit/ai-sdk`, `@hitl-kit/mcp`. End-to-end demos + MCP server verified.
+**Status:** v0.6 · Publicly deployed at [hitlkit.dev](https://www.hitlkit.dev). 15 primitives installable via shadcn CLI. Five packages live on npm: `@hitl-kit/core`, `@hitl-kit/react`, `@hitl-kit/langgraph`, `@hitl-kit/ai-sdk`, `@hitl-kit/mcp`. End-to-end demos + MCP server verified.
 
 ---
 
@@ -30,7 +30,7 @@ Three coordinated artifacts, one project:
 
 ### 2. A component library
 
-Eleven React primitives for human-in-the-loop agentic UIs. Each primitive is the physical embodiment of a specific claim from the paper. The [MiniTrace](https://www.hitlkit.dev/components#trace) instantiates the supporting-facts requirement from HotpotQA (Yang et al., 2018). The [AI Generation Scale](https://www.hitlkit.dev/components#ai-scale) operationalises Dhillon's scaffolding principle. The [Interrupt Card](https://www.hitlkit.dev/components#hitl) is the agency-preservation boundary. Every component ties to a research claim.
+Fifteen React primitives for human-in-the-loop agentic UIs. Each primitive is the physical embodiment of a specific claim from the paper. The [MiniTrace](https://www.hitlkit.dev/components#trace) instantiates the supporting-facts requirement from HotpotQA (Yang et al., 2018). The [AI Generation Scale](https://www.hitlkit.dev/components#ai-scale) operationalises Dhillon's scaffolding principle. The [Interrupt Card](https://www.hitlkit.dev/components#hitl) is the agency-preservation boundary. Every component ties to a research claim.
 
 ### 3. A shadcn-compatible registry
 
@@ -51,7 +51,7 @@ Together: the paper is the argument, the components are the proof the argument i
 | Artifact | Distribution | Live at |
 |---|---|---|
 | **Paper** | Markdown in-repo, rendered on site | [hitlkit.dev/paper](https://www.hitlkit.dev/paper) |
-| **Component library** (11 primitives) | Shadcn registry JSON endpoints | [hitlkit.dev/r/*.json](https://www.hitlkit.dev/registry) |
+| **Component library** (15 primitives) | Shadcn registry JSON endpoints | [hitlkit.dev/r/*.json](https://www.hitlkit.dev/registry) |
 | **`@hitl-kit/core`** (Zod event schemas) | npm (workspace-linked, publish pending) | [packages/core](./packages/core) |
 | **`@hitl-kit/react`** (`HitlEventRenderer`) | npm (workspace-linked, publish pending) | [packages/react](./packages/react) |
 
@@ -179,7 +179,7 @@ Every primitive has a matching `create<Name>Interrupt` helper that validates aga
 
 ## Use with Vercel AI SDK (v0.5a)
 
-`@hitl-kit/ai-sdk` provides 11 typed `tool()` wrappers — one per HITL Kit primitive — that return validated HITL events as tool results. Since AI SDK has no native interrupt primitive, the adapter returns "awaiting human" as a tool-call result; the consumer renders the event and appends a follow-up user message to continue the conversation.
+`@hitl-kit/ai-sdk` provides 15 typed `tool()` wrappers — one per HITL Kit primitive — that return validated HITL events as tool results. Since AI SDK has no native interrupt primitive, the adapter returns "awaiting human" as a tool-call result; the consumer renders the event and appends a follow-up user message to continue the conversation.
 
 ```bash
 pnpm add @hitl-kit/core @hitl-kit/react @hitl-kit/ai-sdk ai zod
@@ -204,7 +204,7 @@ const result = await generateText({
 // If the model calls requestHumanReview, the tool result is a validated HitlCardEvent.
 ```
 
-Or import all 11 at once:
+Or import all 15 at once:
 
 ```ts
 import { allHitlTools } from "@hitl-kit/ai-sdk";
@@ -228,7 +228,7 @@ import { HitlEventRenderer } from "@hitl-kit/react";
 
 ## Use with MCP (v0.5b) · Claude Code, Cursor, Claude Desktop
 
-`@hitl-kit/mcp` is an MCP server that exposes all 11 primitive event kinds as tools. Drop it into any MCP-aware client and every client's agent can emit schema-validated HITL events. No per-client adapter code.
+`@hitl-kit/mcp` is an MCP server that exposes all 15 primitive event kinds as tools. Drop it into any MCP-aware client and every client's agent can emit schema-validated HITL events. No per-client adapter code.
 
 ### Claude Desktop
 
@@ -255,11 +255,11 @@ claude mcp add hitl-kit npx -y @hitl-kit/mcp
 
 Cursor Settings → MCP Servers → Add, same JSON as Claude Desktop.
 
-Once registered and the client is restarted, `hitl_interrupt_card`, `hitl_qa_flow`, and nine more tools are available. Each validates input against the core Zod schema and returns a JSON `HitlEvent` ready for your UI.
+Once registered and the client is restarted, `hitl_interrupt_card`, `hitl_qa_flow`, and 13 more tools are available. Each validates input against the core Zod schema and returns a JSON `HitlEvent` ready for your UI.
 
 ---
 
-## The 11 primitives
+## The 15 primitives
 
 Every primitive is the physical embodiment of a claim from the paper.
 
@@ -276,6 +276,10 @@ Every primitive is the physical embodiment of a claim from the paper.
 | `batch-queue` | Sequential approve and reject across mixed agent items. |
 | `search-result-card` | Ranked result with relevance bar and metadata. |
 | `approve-reject-row` | The canonical binary decision row. |
+| `diff-result` | Before/after diff card for proposed text or code edits. Per-hunk red/green strips, accept/reject states. (v0.6a) |
+| `citation-result` | Single source-backed citation card. Claim, source attribution, optional supporting quote and confidence. (v0.6a) |
+| `editable-plan` | Multi-step plan the human can rename, reorder, add to, or delete from before the agent executes. Locked steps cannot be removed. (v0.6a) |
+| `tool-call-preview` | Preview a tool call (name, args, optional rationale and signals) so the human can approve or reject before execution. (v0.6a) |
 
 Plus 3 shared-lib items (`hitl-utils`, `hitl-types`, `hitl-subagent-meta`) and one `shared-primitives` palette for the atomic design tokens.
 
@@ -288,7 +292,7 @@ Plus 3 shared-lib items (`hitl-utils`, `hitl-types`, `hitl-subagent-meta`) and o
 ├── content/paper.md              The perspective paper (markdown)
 ├── docs/banner.svg               README hero image
 ├── registry.json                 Shadcn registry manifest
-├── public/r/*.json               Built registry endpoints (15 files)
+├── public/r/*.json               Built registry endpoints (19 files)
 ├── apps/
 │   └── demo-langgraph/           End-to-end LangGraph interrupt/resume demo
 ├── packages/
@@ -305,7 +309,7 @@ Plus 3 shared-lib items (`hitl-utils`, `hitl-types`, `hitl-subagent-meta`) and o
 │   │   ├── registry/page.tsx     Install-command reference
 │   │   └── test/                 Dev-only registry health dashboard
 │   ├── components/
-│   │   ├── hitl/                 The 11 primitives + 3 shared lib files
+│   │   ├── hitl/                 The 15 primitives + 3 shared lib files
 │   │   └── site/                 Nav, Footer, brand bits
 │   └── lib/                      cn helper, content constants
 ├── scripts/smoke-test.sh         End-to-end install smoke test
@@ -360,6 +364,7 @@ No global state, no CSS-in-JS runtime, no wrapper SDK. Every component is copy-p
 | **v0.4** | `@hitl-kit/langgraph` adapter with `create<Name>Interrupt` helpers for all 11 primitives, `isHitlInterrupt` type guard. `apps/demo-langgraph` Next.js demo with a real LangGraph `interrupt()` → `<HitlEventRenderer />` → `Command({ resume })` flow, end-to-end verified via HTTP. | ✅ Shipped |
 | **v0.5a** | `@hitl-kit/ai-sdk` adapter: 11 typed `tool()` wrappers returning validated HitlEvents. `allHitlTools` bundle + `isHitlToolResult` type guard. Demo tab added to `apps/demo-langgraph` at `/ai-sdk`, verified end-to-end via HTTP. | ✅ Shipped |
 | **v0.5b** | `@hitl-kit/mcp` MCP server exposing all 11 primitive event kinds as tools. Each tool's JSON Schema is derived from the core Zod schema; input is Zod-validated at call time. Verified via stdio: `initialize` handshake + `tools/list` returns all 11 `hitl_*` tools with correct schemas. Works with Claude Desktop, Claude Code, Cursor, any MCP-aware client. | ✅ Shipped |
+| **v0.6a** | Four new primitives — `diff-result`, `citation-result`, `editable-plan`, `tool-call-preview` — added to core schema, every adapter (`createXInterrupt`, `xTool`, MCP `hitl_*`), the React showcase at `/components`, the shadcn registry, and `apps/demo-langgraph` (new tabs `/diff`, `/citation`, `/plan`, `/tool-call`). Schema additions are backward-compatible; existing event consumers untouched. | ✅ Shipped |
 
 **The v0.3+ ambition is LLM pluggability.** An agent running in LangGraph, Vercel AI SDK, Claude Agent SDK, or any MCP-aware client emits a structured HITL event matching a Zod schema. The renderer validates, narrows by `event.kind`, and mounts the right primitive. Tool call → UI, no wiring per component. The paper becomes the protocol; the protocol becomes the platform.
 

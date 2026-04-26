@@ -10,7 +10,7 @@ by `<HitlEventRenderer />` in `@hitl-kit/react`.
 pnpm add @hitl-kit/core
 ```
 
-## The 11 primitive events
+## The 15 primitive events
 
 ```ts
 import { HitlEventSchema, type HitlEvent } from "@hitl-kit/core";
@@ -32,6 +32,10 @@ switch (event.kind) {
   case "batch.queue":        /* Batch Queue           */ break;
   case "result.search":      /* Search Result Card    */ break;
   case "approval.binary":    /* Approve / Reject Row  */ break;
+  case "result.diff":        /* Diff Result (v0.6a)   */ break;
+  case "result.citation":    /* Citation Result       */ break;
+  case "plan.editable":      /* Editable Plan         */ break;
+  case "tool.call":          /* Tool Call Preview     */ break;
 }
 ```
 
