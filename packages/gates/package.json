@@ -1,0 +1,51 @@
+{
+  "name": "@hitl-kit/gates",
+  "version": "0.1.0",
+  "description": "Composable decision gates (confidence, cost, scope, approval chain, rate limit) for HITL Kit. Pure functions that wrap any adapter's emit point and decide allow / deny / escalate.",
+  "keywords": [
+    "hitl",
+    "human-in-the-loop",
+    "gates",
+    "policy",
+    "ai",
+    "agents"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "pnpm typecheck && pnpm test && pnpm build"
+  },
+  "dependencies": {
+    "@hitl-kit/core": "workspace:*"
+  },
+  "devDependencies": {
+    "tsup": "^8.5.0",
+    "typescript": "^5",
+    "vitest": "^2.1.0"
+  },
+  "license": "MIT",
+  "author": "Ieuan King <ieuan@ubik.studio>",
+  "homepage": "https://hitlkit.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akaieuan/HITL-KIT.git",
+    "directory": "packages/gates"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

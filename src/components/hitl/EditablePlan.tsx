@@ -35,8 +35,15 @@ export function EditablePlan({
 
   if (submitted === "ran") {
     return (
-      <div className="my-1.5 flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-1.5 text-xs">
-        <Check className="h-3.5 w-3.5 text-[color:var(--accent-emerald)]" />
+      <div
+        className="my-1.5 flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-1.5 text-xs"
+        role="status"
+        aria-live="polite"
+      >
+        <Check
+          className="h-3.5 w-3.5 text-[color:var(--accent-emerald)]"
+          aria-hidden="true"
+        />
         <span className="font-medium text-foreground">
           {config.submitLabel ?? "Run plan"}
         </span>
@@ -46,7 +53,11 @@ export function EditablePlan({
   }
   if (submitted === "cancelled") {
     return (
-      <div className="my-1.5 rounded-xl border border-dashed border-border px-3 py-1.5 text-xs italic text-muted-foreground">
+      <div
+        className="my-1.5 rounded-xl border border-dashed border-border px-3 py-1.5 text-xs italic text-muted-foreground"
+        role="status"
+        aria-live="polite"
+      >
         Plan cancelled
       </div>
     );
@@ -77,9 +88,16 @@ export function EditablePlan({
   };
 
   return (
-    <div className="my-1.5 rounded-xl border border-border bg-card text-xs">
+    <div
+      className="my-1.5 rounded-xl border border-border bg-card text-xs"
+      role="group"
+      aria-label={`Editable plan: ${config.title}`}
+    >
       <div className="flex items-center gap-2 border-b border-border px-3 py-2">
-        <ListChecks className="h-3.5 w-3.5 shrink-0 text-[color:var(--accent-blue)]" />
+        <ListChecks
+          className="h-3.5 w-3.5 shrink-0 text-[color:var(--accent-blue)]"
+          aria-hidden="true"
+        />
         <div className="flex-1 min-w-0">
           <span className="font-medium text-foreground">{config.title}</span>
           {config.subtitle && (
@@ -88,73 +106,86 @@ export function EditablePlan({
         </div>
       </div>
 
-      <ul className="space-y-1 px-2 py-2">
+      <ol className="space-y-1 px-2 py-2 list-none m-0" aria-label="Plan steps">
         {steps.map((step, i) => (
           <li
             key={step.id}
             className="group flex items-center gap-1.5 rounded-md border border-transparent px-1.5 py-1 hover:border-border"
           >
             <button
+              type="button"
               onClick={() => move(i, -1)}
               disabled={i === 0}
-              className="cursor-grab text-muted-foreground opacity-0 group-hover:opacity-100 disabled:opacity-30"
-              title="Move up"
+              aria-label={`Move "${step.label}" up`}
+              className="cursor-grab text-muted-foreground opacity-0 group-hover:opacity-100 disabled:opacity-30 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
             >
-              <GripVertical className="h-3.5 w-3.5" />
+              <GripVertical className="h-3.5 w-3.5" aria-hidden="true" />
             </button>
-            <span className="font-mono text-[10px] text-muted-foreground">
+            <span
+              className="font-mono text-[10px] text-muted-foreground"
+              aria-hidden="true"
+            >
               {i + 1}
             </span>
             <input
               value={step.label}
               onChange={(e) => update(i, e.target.value)}
               disabled={step.locked}
+              aria-label={`Step ${i + 1}${step.locked ? " (locked)" : ""}`}
               className={cn(
-                "flex-1 bg-transparent text-foreground outline-none",
+                "flex-1 bg-transparent text-foreground outline-none focus:ring-1 focus:ring-ring rounded",
                 step.locked && "text-muted-foreground",
               )}
             />
             {step.locked ? (
-              <Lock className="h-3 w-3 text-muted-foreground" />
+              <Lock
+                className="h-3 w-3 text-muted-foreground"
+                aria-label="Locked"
+              />
             ) : (
               <button
+                type="button"
                 onClick={() => remove(i)}
-                className="text-muted-foreground opacity-0 transition-colors group-hover:opacity-100 hover:text-[color:var(--accent-rose)]"
-                title="Remove"
+                aria-label={`Remove "${step.label}"`}
+                className="text-muted-foreground opacity-0 transition-colors group-hover:opacity-100 hover:text-[color:var(--accent-rose)] focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
               >
-                <X className="h-3.5 w-3.5" />
+                <X className="h-3.5 w-3.5" aria-hidden="true" />
               </button>
             )}
           </li>
         ))}
-      </ul>
+      </ol>
 
       <div className="flex items-center gap-2 border-t border-border px-3 py-2">
         <button
+          type="button"
           onClick={addStep}
-          className="flex items-center gap-1 rounded-md px-2 py-1 text-muted-foreground hover:bg-muted hover:text-foreground"
+          className="flex items-center gap-1 rounded-md px-2 py-1 text-muted-foreground hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <Plus className="h-3 w-3" />
+          <Plus className="h-3 w-3" aria-hidden="true" />
           Add step
         </button>
         <button
+          type="button"
           onClick={() => {
             setSubmitted("ran");
             onSubmit?.(steps);
           }}
-          className="ml-auto flex items-center gap-1.5 rounded-md bg-muted px-3 py-1.5 font-medium text-foreground transition-opacity hover:opacity-80"
+          className="ml-auto flex items-center gap-1.5 rounded-md bg-muted px-3 py-1.5 font-medium text-foreground transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <Check className="h-3 w-3" />
+          <Check className="h-3 w-3" aria-hidden="true" />
           {config.submitLabel ?? "Run plan"}
         </button>
         <button
+          type="button"
           onClick={() => {
             setSubmitted("cancelled");
             onCancel?.();
           }}
-          className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground"
+          aria-label="Cancel plan"
+          className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <X className="h-3 w-3" />
+          <X className="h-3 w-3" aria-hidden="true" />
         </button>
       </div>
     </div>

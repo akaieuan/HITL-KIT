@@ -1,6 +1,6 @@
 {
   "name": "hitl-kit",
-  "version": "0.6.0",
+  "version": "0.6.2",
   "private": true,
   "description": "A design system, component library, and evaluation framework for human-in-the-loop AI.",
   "scripts": {
@@ -13,7 +13,9 @@
     "registry:check": "pnpm registry:build && git diff --exit-code public/r registry.json && echo '\u2713 registry up to date'",
     "packages:build": "pnpm --filter '@hitl-kit/*' build",
     "packages:typecheck": "pnpm --filter '@hitl-kit/*' typecheck",
-    "verify": "pnpm typecheck && pnpm packages:typecheck && pnpm registry:check && pnpm build",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "verify": "pnpm typecheck && pnpm packages:typecheck && pnpm test && pnpm registry:check && pnpm build",
     "smoke-test": "bash scripts/smoke-test.sh local",
     "smoke-test:prod": "bash scripts/smoke-test.sh prod"
   },
@@ -39,6 +41,7 @@
     "eslint-config-next": "16.2.4",
     "shadcn": "^4.3.1",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "vitest": "^2.1.0"
   }
 }

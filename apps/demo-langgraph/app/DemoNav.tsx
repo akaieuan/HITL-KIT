@@ -7,6 +7,7 @@ const tabs = [
   { href: "/citation", label: "Citation" },
   { href: "/plan", label: "Plan" },
   { href: "/tool-call", label: "Tool call" },
+  { href: "/gates", label: "Gates" },
 ];
 
 export function DemoNav() {

@@ -12,6 +12,7 @@
   "dependencies": {
     "@hitl-kit/ai-sdk": "workspace:*",
     "@hitl-kit/core": "workspace:*",
+    "@hitl-kit/gates": "workspace:*",
     "@hitl-kit/langgraph": "workspace:*",
     "@hitl-kit/react": "workspace:*",
     "@langchain/langgraph": "^1.2.9",

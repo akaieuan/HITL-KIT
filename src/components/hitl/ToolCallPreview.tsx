@@ -36,16 +36,20 @@ export function ToolCallPreview({
 
   if (state !== "idle") {
     return (
-      <div className="my-1.5 flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-1.5 text-xs">
+      <div
+        className="my-1.5 flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-1.5 text-xs"
+        role="status"
+        aria-live="polite"
+      >
         {state === "approved" ? (
           <>
-            <Check className="h-3.5 w-3.5 text-[color:var(--accent-emerald)]" />
+            <Check className="h-3.5 w-3.5 text-[color:var(--accent-emerald)]" aria-hidden="true" />
             <span className="font-mono text-foreground">{config.toolName}()</span>
             <span className="text-muted-foreground">· approved</span>
           </>
         ) : (
           <>
-            <X className="h-3.5 w-3.5 text-[color:var(--accent-rose)]" />
+            <X className="h-3.5 w-3.5 text-[color:var(--accent-rose)]" aria-hidden="true" />
             <span className="font-mono text-foreground">{config.toolName}()</span>
             <span className="text-muted-foreground">· rejected</span>
           </>
@@ -59,10 +63,19 @@ export function ToolCallPreview({
       ? null
       : Math.round(config.signals.confidence * 100);
 
+  const argsId = `tool-call-${config.id ?? "default"}-args`;
+
   return (
-    <div className="my-1.5 rounded-xl border border-border bg-card text-xs">
+    <div
+      className="my-1.5 rounded-xl border border-border bg-card text-xs"
+      role="group"
+      aria-label={`Tool call preview: ${config.toolName}`}
+    >
       <div className="flex items-center gap-2 border-b border-border px-3 py-2">
-        <Wrench className="h-3.5 w-3.5 shrink-0 text-[color:var(--accent-amber)]" />
+        <Wrench
+          className="h-3.5 w-3.5 shrink-0 text-[color:var(--accent-amber)]"
+          aria-hidden="true"
+        />
         <span className="font-mono font-medium text-foreground">
           {config.toolName}()
         </span>
@@ -78,13 +91,16 @@ export function ToolCallPreview({
       )}
 
       <button
+        type="button"
         onClick={() => setOpen((o) => !o)}
-        className="flex w-full items-center gap-1 px-3 py-1.5 text-left text-muted-foreground hover:text-foreground"
+        aria-expanded={open}
+        aria-controls={argsId}
+        className="flex w-full items-center gap-1 px-3 py-1.5 text-left text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {open ? (
-          <ChevronDown className="h-3 w-3" />
+          <ChevronDown className="h-3 w-3" aria-hidden="true" />
         ) : (
-          <ChevronRight className="h-3 w-3" />
+          <ChevronRight className="h-3 w-3" aria-hidden="true" />
         )}
         <span>Arguments</span>
         <span className="ml-1 font-mono text-[10px]">
@@ -93,7 +109,10 @@ export function ToolCallPreview({
       </button>
 
       {open && (
-        <pre className="overflow-x-auto border-t border-border bg-muted/30 px-3 py-2 font-mono text-[11px] leading-relaxed text-foreground">
+        <pre
+          id={argsId}
+          className="overflow-x-auto border-t border-border bg-muted/30 px-3 py-2 font-mono text-[11px] leading-relaxed text-foreground"
+        >
           {JSON.stringify(config.args, null, 2)}
         </pre>
       )}
@@ -126,26 +145,28 @@ export function ToolCallPreview({
 
       <div className="flex items-center gap-2 border-t border-border px-3 py-2">
         <button
+          type="button"
           onClick={() => {
             setState("approved");
             onApprove?.();
           }}
-          className="flex items-center gap-1.5 rounded-md bg-muted px-3 py-1.5 font-medium text-foreground transition-opacity hover:opacity-80"
+          className="flex items-center gap-1.5 rounded-md bg-muted px-3 py-1.5 font-medium text-foreground transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <Check className="h-3 w-3" />
+          <Check className="h-3 w-3" aria-hidden="true" />
           {config.approveLabel ?? "Run tool"}
         </button>
         <button
+          type="button"
           onClick={() => {
             setState("rejected");
             onReject?.();
           }}
           className={cn(
             "ml-auto flex h-6 items-center gap-1 rounded-md px-2 text-muted-foreground",
-            "transition-colors hover:bg-muted hover:text-foreground",
+            "transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           )}
         >
-          <X className="h-3 w-3" />
+          <X className="h-3 w-3" aria-hidden="true" />
           {config.rejectLabel ?? "Reject"}
         </button>
       </div>

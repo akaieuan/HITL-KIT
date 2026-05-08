@@ -1,5 +1,6 @@
 export * from "./interrupts";
 export * from "./types";
+export * from "./gates";
 
 // Re-export HitlEvent types from core so consumers only import from
 // one package in simple cases.

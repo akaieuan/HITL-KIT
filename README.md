@@ -10,7 +10,7 @@
 
 [**Read the paper**](https://www.hitlkit.dev/paper) · [**Browse components**](https://www.hitlkit.dev/components) · [**Registry install reference**](https://www.hitlkit.dev/registry) · [**GitHub**](https://github.com/akaieuan/HITL-KIT)
 
-**Status:** v0.6 · Publicly deployed at [hitlkit.dev](https://www.hitlkit.dev). 15 primitives installable via shadcn CLI. Five packages live on npm: `@hitl-kit/core`, `@hitl-kit/react`, `@hitl-kit/langgraph`, `@hitl-kit/ai-sdk`, `@hitl-kit/mcp`. End-to-end demos + MCP server verified.
+**Status:** v0.6 · Publicly deployed at [hitlkit.dev](https://www.hitlkit.dev). 15 primitives installable via shadcn CLI. Six packages live on npm: `@hitl-kit/core`, `@hitl-kit/react`, `@hitl-kit/gates`, `@hitl-kit/langgraph`, `@hitl-kit/ai-sdk`, `@hitl-kit/mcp`. End-to-end demos + MCP server verified. 43 tests covering the schema and every gate.
 
 ---
 
@@ -52,8 +52,10 @@ Together: the paper is the argument, the components are the proof the argument i
 |---|---|---|
 | **Paper** | Markdown in-repo, rendered on site | [hitlkit.dev/paper](https://www.hitlkit.dev/paper) |
 | **Component library** (15 primitives) | Shadcn registry JSON endpoints | [hitlkit.dev/r/*.json](https://www.hitlkit.dev/registry) |
-| **`@hitl-kit/core`** (Zod event schemas) | npm (workspace-linked, publish pending) | [packages/core](./packages/core) |
-| **`@hitl-kit/react`** (`HitlEventRenderer`) | npm (workspace-linked, publish pending) | [packages/react](./packages/react) |
+| **`@hitl-kit/core`** (Zod event schemas) | npm | [packages/core](./packages/core) |
+| **`@hitl-kit/react`** (`HitlEventRenderer`) | npm | [packages/react](./packages/react) |
+| **`@hitl-kit/gates`** (5 composable decision gates) | npm | [packages/gates](./packages/gates) |
+| **`@hitl-kit/langgraph`** / **`@hitl-kit/ai-sdk`** / **`@hitl-kit/mcp`** | npm | [packages/](./packages) |
 
 ---
 
@@ -226,6 +228,55 @@ import { HitlEventRenderer } from "@hitl-kit/react";
 
 ---
 
+## Add gates (v0.6b)
+
+A gate is a pure decision function: confidence too low? cost over budget? scope outside what's allowed? deny — and (default) surface a HITL escalation card so the human can override. Same renderer pipeline handles allow- and block-paths.
+
+```bash
+pnpm add @hitl-kit/gates
+```
+
+```ts
+import {
+  composeGates,
+  confidenceGate,
+  costGate,
+  scopeGate,
+  rateLimitGate,
+  inMemoryStore,
+} from "@hitl-kit/gates";
+
+const store = inMemoryStore();
+
+const gates = [
+  confidenceGate({ min: 0.85 }),
+  costGate({ maxUsd: 0.10 }),
+  scopeGate({ allowed: ["read:files", "read:web"] }),
+  rateLimitGate({ store, key: (ctx) => ctx.signals?.userId ?? "anon", max: 30, windowSec: 60 }),
+];
+```
+
+Wire them in via the adapter helpers:
+
+```ts
+// LangGraph
+import { withGates } from "@hitl-kit/langgraph";
+const gated = await withGates(payload, gates, { signals });
+const approval = interrupt(gated);
+
+// Vercel AI SDK
+import { withGates } from "@hitl-kit/ai-sdk";
+const tool = withGates(hitlCardTool(), gates, { signals: (input) => deriveSignals(input) });
+
+// MCP — gates configured at server creation
+import { createHitlKitServer } from "@hitl-kit/mcp";
+const server = createHitlKitServer({ gates, onDeny: "escalate" });
+```
+
+When a gate denies with the default `onDeny`, the result is the gate's escalation `HitlEvent` — feed it to the same `<HitlEventRenderer />` you already use. Full details in [packages/gates/README.md](./packages/gates/README.md).
+
+---
+
 ## Use with MCP (v0.5b) · Claude Code, Cursor, Claude Desktop
 
 `@hitl-kit/mcp` is an MCP server that exposes all 15 primitive event kinds as tools. Drop it into any MCP-aware client and every client's agent can emit schema-validated HITL events. No per-client adapter code.
@@ -298,9 +349,10 @@ Plus 3 shared-lib items (`hitl-utils`, `hitl-types`, `hitl-subagent-meta`) and o
 ├── packages/
 │   ├── core/                     @hitl-kit/core (Zod event schemas)
 │   ├── react/                    @hitl-kit/react (HitlEventRenderer)
-│   ├── langgraph/                @hitl-kit/langgraph (interrupt helpers)
-│   ├── ai-sdk/                   @hitl-kit/ai-sdk (Vercel AI SDK tool wrappers)
-│   └── mcp/                      @hitl-kit/mcp (MCP stdio server, hitl-kit-mcp bin)
+│   ├── gates/                    @hitl-kit/gates (5 composable decision gates)
+│   ├── langgraph/                @hitl-kit/langgraph (interrupt helpers + withGates)
+│   ├── ai-sdk/                   @hitl-kit/ai-sdk (Vercel AI SDK tool wrappers + withGates)
+│   └── mcp/                      @hitl-kit/mcp (MCP stdio server with gate hooks, hitl-kit-mcp bin)
 ├── src/
 │   ├── app/                      Next.js App Router pages
 │   │   ├── page.tsx              Landing
@@ -324,10 +376,11 @@ Plus 3 shared-lib items (`hitl-utils`, `hitl-types`, `hitl-subagent-meta`) and o
 ```bash
 pnpm install
 pnpm dev                # dev server at http://localhost:3000
-pnpm verify             # typecheck + registry drift check + build (run before pushing)
+pnpm test               # run vitest across all packages
+pnpm verify             # typecheck + tests + registry drift check + build (run before pushing)
 pnpm smoke-test         # end-to-end install test (requires dev server running)
 pnpm registry:build     # regenerate public/r/*.json after editing a primitive
-pnpm packages:build     # build both @hitl-kit/* packages via tsup
+pnpm packages:build     # build all @hitl-kit/* packages via tsup
 ```
 
 The verification pipeline and contribution protocol are documented in [CONTRIBUTING.md](./CONTRIBUTING.md). Substantial changes should land on a feature branch first so Vercel builds a preview deployment before merging.
@@ -365,6 +418,9 @@ No global state, no CSS-in-JS runtime, no wrapper SDK. Every component is copy-p
 | **v0.5a** | `@hitl-kit/ai-sdk` adapter: 11 typed `tool()` wrappers returning validated HitlEvents. `allHitlTools` bundle + `isHitlToolResult` type guard. Demo tab added to `apps/demo-langgraph` at `/ai-sdk`, verified end-to-end via HTTP. | ✅ Shipped |
 | **v0.5b** | `@hitl-kit/mcp` MCP server exposing all 11 primitive event kinds as tools. Each tool's JSON Schema is derived from the core Zod schema; input is Zod-validated at call time. Verified via stdio: `initialize` handshake + `tools/list` returns all 11 `hitl_*` tools with correct schemas. Works with Claude Desktop, Claude Code, Cursor, any MCP-aware client. | ✅ Shipped |
 | **v0.6a** | Four new primitives — `diff-result`, `citation-result`, `editable-plan`, `tool-call-preview` — added to core schema, every adapter (`createXInterrupt`, `xTool`, MCP `hitl_*`), the React showcase at `/components`, the shadcn registry, and `apps/demo-langgraph` (new tabs `/diff`, `/citation`, `/plan`, `/tool-call`). Schema additions are backward-compatible; existing event consumers untouched. | ✅ Shipped |
+| **v0.6b** | New `@hitl-kit/gates` package: `confidenceGate`, `costGate`, `scopeGate`, `approvalChainGate`, `rateLimitGate`, plus `composeGates` and pluggable `GateStore` (in-memory ships; Redis/DB is one interface implementation away). `withGates` wrappers on `@hitl-kit/langgraph` and `@hitl-kit/ai-sdk`; opts-object on `@hitl-kit/mcp` server (`gates`, `perToolGates`, `signals`, `onDeny`). Default deny-path returns the gate's escalation HitlEvent so `<HitlEventRenderer />` renders allow- and block-paths through the same code. New `/gates` demo tab. | ✅ Shipped |
+| **v0.6c** | Test scaffold landed: vitest at the root + per-package, 43 tests across `@hitl-kit/core` (round-trip parse for every event + exhaustiveness + frozen fixtures), `@hitl-kit/gates` (every factory, compose, store, rate-limit, approval chain), and one integration test per adapter (`withGates` allow + escalate + throw). `pnpm verify` now includes `pnpm test`. SECURITY.md, GitHub issue templates, and PR template added for OSS hygiene. A11y pass on the six highest-impact components (HitlCard, QAFlow, ApproveRejectRow, DiffResult, EditablePlan, ToolCallPreview): `aria-expanded`, `role`/`aria-checked`/`aria-controls`, focus-visible rings, and decorative icons marked `aria-hidden`. | ✅ Shipped |
+| **v0.7** | A11y pass across the remaining 9 primitives + API unification (single prop pattern, single `onAction` discriminated callback). Design doc at [`docs/api-unification.md`](./docs/api-unification.md). | 📋 Planned |
 
 **The v0.3+ ambition is LLM pluggability.** An agent running in LangGraph, Vercel AI SDK, Claude Agent SDK, or any MCP-aware client emits a structured HITL event matching a Zod schema. The renderer validates, narrows by `event.kind`, and mounts the right primitive. Tool call → UI, no wiring per component. The paper becomes the protocol; the protocol becomes the platform.
 

@@ -1,5 +1,6 @@
 export * from "./tools";
 export * from "./types";
+export * from "./gates";
 
 // Convenience re-exports from core so consumers can import from one place.
 export type {

@@ -87,11 +87,14 @@ export function QAFlow({
           "flex items-center gap-2 rounded-lg border border-[color:var(--accent-emerald)]/30 bg-[color:var(--accent-emerald)]/5 p-3 text-sm font-medium text-[color:var(--accent-emerald)]",
           className,
         )}
+        role="status"
+        aria-live="polite"
       >
-        <Check className="h-4 w-4" /> Responses submitted
+        <Check className="h-4 w-4" aria-hidden="true" /> Responses submitted
         <button
+          type="button"
           onClick={reset}
-          className="ml-auto text-[10px] underline underline-offset-2 opacity-60 hover:opacity-100"
+          className="ml-auto text-[10px] underline underline-offset-2 opacity-60 hover:opacity-100 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
         >
           reset
         </button>
@@ -100,21 +103,32 @@ export function QAFlow({
   }
 
   return (
-    <div className={cn("space-y-4", className)}>
+    <form
+      className={cn("space-y-4", className)}
+      onSubmit={(e) => {
+        e.preventDefault();
+        submit();
+      }}
+    >
       {questions.map((q) => (
-        <div key={q.id}>
-          <p className="mb-1.5 text-xs font-medium text-foreground">{q.prompt}</p>
+        <fieldset key={q.id} className="border-0 p-0 m-0">
+          <legend className="mb-1.5 text-xs font-medium text-foreground">
+            {q.prompt}
+          </legend>
 
           {q.kind === "single" && (
-            <div className="space-y-1">
+            <div className="space-y-1" role="radiogroup" aria-label={q.prompt}>
               {q.options.map((o) => {
                 const active = single[q.id] === o;
                 return (
                   <button
+                    type="button"
                     key={o}
+                    role="radio"
+                    aria-checked={active}
                     onClick={() => setSingle((p) => ({ ...p, [q.id]: o }))}
                     className={cn(
-                      "flex w-full items-center gap-2 rounded-md border px-3 py-2 text-xs transition-colors",
+                      "flex w-full items-center gap-2 rounded-md border px-3 py-2 text-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                       active
                         ? "border-[color:var(--accent-blue)]/50 bg-[color:var(--accent-blue)]/5 text-foreground"
                         : "border-border text-muted-foreground hover:bg-muted",
@@ -127,6 +141,7 @@ export function QAFlow({
                           ? "border-[color:var(--accent-blue)] bg-[color:var(--accent-blue)]"
                           : "border-muted-foreground",
                       )}
+                      aria-hidden="true"
                     />
                     {o}
                   </button>
@@ -136,15 +151,18 @@ export function QAFlow({
           )}
 
           {q.kind === "multi" && (
-            <div className="space-y-1">
+            <div className="space-y-1" role="group" aria-label={q.prompt}>
               {q.options.map((o) => {
                 const active = multi[q.id]?.has(o) ?? false;
                 return (
                   <button
+                    type="button"
                     key={o}
+                    role="checkbox"
+                    aria-checked={active}
                     onClick={() => toggleMulti(q.id, o)}
                     className={cn(
-                      "flex w-full items-center gap-2 rounded-md border px-3 py-2 text-xs transition-colors",
+                      "flex w-full items-center gap-2 rounded-md border px-3 py-2 text-xs transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                       active
                         ? "border-[color:var(--accent-blue)]/50 bg-[color:var(--accent-blue)]/5 text-foreground"
                         : "border-border text-muted-foreground hover:bg-muted",
@@ -157,6 +175,7 @@ export function QAFlow({
                           ? "bg-[color:var(--accent-blue)]"
                           : "border border-muted-foreground",
                       )}
+                      aria-hidden="true"
                     >
                       {active && <Check className="h-2 w-2 text-black" />}
                     </div>
@@ -169,6 +188,7 @@ export function QAFlow({
 
           {q.kind === "text" && (
             <textarea
+              aria-label={q.prompt}
               className="w-full resize-none rounded-lg border border-border bg-background/40 px-3 py-2 text-xs outline-none placeholder:text-muted-foreground focus:ring-1 focus:ring-[color:var(--accent-blue)]"
               rows={2}
               placeholder={q.placeholder ?? ""}
@@ -178,15 +198,15 @@ export function QAFlow({
               }
             />
           )}
-        </div>
+        </fieldset>
       ))}
 
       <button
-        onClick={submit}
-        className="w-full rounded-lg bg-foreground py-2 text-xs font-medium text-background transition-opacity hover:opacity-90"
+        type="submit"
+        className="w-full rounded-lg bg-foreground py-2 text-xs font-medium text-background transition-opacity hover:opacity-90 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         {submitLabel}
       </button>
-    </div>
+    </form>
   );
 }

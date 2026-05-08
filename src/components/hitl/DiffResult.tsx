@@ -31,10 +31,14 @@ export function DiffResult({ config, onAccept, onReject }: DiffResultProps) {
 
   if (state !== "idle") {
     return (
-      <div className="my-1.5 flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-1.5 text-xs">
+      <div
+        className="my-1.5 flex items-center gap-2 rounded-xl border border-border bg-card px-3 py-1.5 text-xs"
+        role="status"
+        aria-live="polite"
+      >
         {state === "accepted" ? (
           <>
-            <Check className="h-3.5 w-3.5 text-[color:var(--accent-emerald)]" />
+            <Check className="h-3.5 w-3.5 text-[color:var(--accent-emerald)]" aria-hidden="true" />
             <span className="font-medium text-foreground">
               {config.acceptLabel ?? "Apply edit"}
             </span>
@@ -42,7 +46,7 @@ export function DiffResult({ config, onAccept, onReject }: DiffResultProps) {
           </>
         ) : (
           <>
-            <X className="h-3.5 w-3.5 text-[color:var(--accent-rose)]" />
+            <X className="h-3.5 w-3.5 text-[color:var(--accent-rose)]" aria-hidden="true" />
             <span className="font-medium text-foreground">
               {config.rejectLabel ?? "Reject"}
             </span>
@@ -54,9 +58,16 @@ export function DiffResult({ config, onAccept, onReject }: DiffResultProps) {
   }
 
   return (
-    <div className="my-1.5 rounded-xl border border-border bg-card text-xs">
+    <div
+      className="my-1.5 rounded-xl border border-border bg-card text-xs"
+      role="group"
+      aria-label={`Proposed diff: ${config.title}`}
+    >
       <div className="flex items-center gap-2 border-b border-border px-3 py-2">
-        <FileDiff className="h-3.5 w-3.5 shrink-0 text-[color:var(--accent-blue)]" />
+        <FileDiff
+          className="h-3.5 w-3.5 shrink-0 text-[color:var(--accent-blue)]"
+          aria-hidden="true"
+        />
         <div className="flex-1 min-w-0">
           <span className="font-medium text-foreground">{config.title}</span>
           {config.subtitle && (
@@ -72,18 +83,32 @@ export function DiffResult({ config, onAccept, onReject }: DiffResultProps) {
 
       <div className="space-y-2 px-3 py-2">
         {config.hunks.map((hunk, i) => (
-          <div key={i} className="overflow-hidden rounded-md border border-border">
+          <div
+            key={i}
+            className="overflow-hidden rounded-md border border-border"
+            aria-label={
+              hunk.startLine !== undefined
+                ? `Hunk at line ${hunk.startLine}`
+                : `Hunk ${i + 1}`
+            }
+          >
             {hunk.startLine !== undefined && (
               <div className="bg-muted/40 px-2 py-1 font-mono text-[10px] text-muted-foreground">
                 @ line {hunk.startLine}
               </div>
             )}
-            <pre className="bg-[color:var(--accent-rose)]/8 px-2 py-1.5 font-mono text-[11px] leading-relaxed text-foreground">
-              <span className="select-none text-[color:var(--accent-rose)]">- </span>
+            <pre
+              className="bg-[color:var(--accent-rose)]/8 px-2 py-1.5 font-mono text-[11px] leading-relaxed text-foreground"
+              aria-label="Original text"
+            >
+              <span className="select-none text-[color:var(--accent-rose)]" aria-hidden="true">- </span>
               {hunk.before}
             </pre>
-            <pre className="bg-[color:var(--accent-emerald)]/8 px-2 py-1.5 font-mono text-[11px] leading-relaxed text-foreground">
-              <span className="select-none text-[color:var(--accent-emerald)]">+ </span>
+            <pre
+              className="bg-[color:var(--accent-emerald)]/8 px-2 py-1.5 font-mono text-[11px] leading-relaxed text-foreground"
+              aria-label="Proposed text"
+            >
+              <span className="select-none text-[color:var(--accent-emerald)]" aria-hidden="true">+ </span>
               {hunk.after}
             </pre>
           </div>
@@ -92,26 +117,28 @@ export function DiffResult({ config, onAccept, onReject }: DiffResultProps) {
 
       <div className="flex items-center gap-2 border-t border-border px-3 py-2">
         <button
+          type="button"
           onClick={() => {
             setState("accepted");
             onAccept?.();
           }}
-          className="flex items-center gap-1.5 rounded-md bg-muted px-3 py-1.5 font-medium text-foreground transition-opacity hover:opacity-80"
+          className="flex items-center gap-1.5 rounded-md bg-muted px-3 py-1.5 font-medium text-foreground transition-opacity hover:opacity-80 focus:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <Check className="h-3 w-3" />
+          <Check className="h-3 w-3" aria-hidden="true" />
           {config.acceptLabel ?? "Apply edit"}
         </button>
         <button
+          type="button"
           onClick={() => {
             setState("rejected");
             onReject?.();
           }}
           className={cn(
             "ml-auto flex h-6 items-center gap-1 rounded-md px-2 text-muted-foreground",
-            "transition-colors hover:bg-muted hover:text-foreground",
+            "transition-colors hover:bg-muted hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring",
           )}
         >
-          <X className="h-3 w-3" />
+          <X className="h-3 w-3" aria-hidden="true" />
           {config.rejectLabel ?? "Reject"}
         </button>
       </div>
