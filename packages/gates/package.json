@@ -1,6 +1,6 @@
 {
   "name": "@hitl-kit/gates",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Composable decision gates (confidence, cost, scope, approval chain, rate limit) for HITL Kit. Pure functions that wrap any adapter's emit point and decide allow / deny / escalate.",
   "keywords": [
     "hitl",
@@ -20,7 +20,10 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -35,7 +38,7 @@
   "devDependencies": {
     "tsup": "^8.5.0",
     "typescript": "^5",
-    "vitest": "^2.1.0"
+    "vitest": "^4.1.8"
   },
   "license": "MIT",
   "author": "Ieuan King <ieuan@ubik.studio>",

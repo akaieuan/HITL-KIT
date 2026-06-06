@@ -345,6 +345,9 @@ export function citationResultTool(options: { description?: string } = {}) {
     description:
       options.description ??
       "Surface a single source-backed citation for a claim the agent is making. Use when the agent wants the human to verify the source supports the claim.",
+    // Use the core schema directly as the input shape (minus the kind
+    // discriminator) so the validation and caps stay aligned across
+    // adapters. Re-parsing in execute is a safety net.
     inputSchema: z.object({
       claim: z.string(),
       source: z.object({
@@ -352,7 +355,13 @@ export function citationResultTool(options: { description?: string } = {}) {
         authors: z.string(),
         year: z.union([z.number(), z.string()]),
         venue: z.string().optional(),
-        url: z.string().url().optional(),
+        url: z
+          .string()
+          .url()
+          .refine((u) => /^https?:\/\//i.test(u), {
+            message: "url must use http(s) scheme",
+          })
+          .optional(),
         quote: z.string().optional(),
         pages: z.string().optional(),
       }),

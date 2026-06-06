@@ -1,4 +1,9 @@
-import type { Gate, GateSignals, GateDecision } from "@hitl-kit/gates";
+import type {
+  Gate,
+  GateSignals,
+  GateDecision,
+  GateStore,
+} from "@hitl-kit/gates";
 import { composeGates } from "@hitl-kit/gates";
 import type { HitlEvent } from "@hitl-kit/core";
 
@@ -43,6 +48,12 @@ export async function runGates(
     args: unknown;
     onDeny: "escalate" | "error";
     signals?: GateSignals;
+    /**
+     * Server-level shared store. Forwarded to gates via GateContext.store
+     * so gate factories can read/write through one store instead of each
+     * binding its own closure copy.
+     */
+    store?: GateStore;
   },
 ): Promise<GateResult> {
   if (gates.length === 0) {
@@ -53,6 +64,7 @@ export async function runGates(
     input: ctx.args,
     signals: ctx.signals,
     adapter: "mcp",
+    store: ctx.store,
   });
 
   if (decision.allow) {

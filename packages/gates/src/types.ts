@@ -30,14 +30,22 @@ export interface GateSignals {
 
 /**
  * Context handed to a gate for a single decision. Contains the proposed
- * event the adapter is about to surface, optional structured input, and
- * the signals adapter forwarded.
+ * event the adapter is about to surface, optional structured input, the
+ * signals the adapter forwarded, and an optional shared store gates can
+ * read/write through (rate-limit counters, approval-chain state).
  */
 export interface GateContext {
   event?: HitlEvent;
   input?: unknown;
   signals?: GateSignals;
   adapter: "langgraph" | "ai-sdk" | "mcp" | "core";
+  /**
+   * Shared store wired by the adapter (e.g. the MCP server's `opts.store`).
+   * Gates that need persistence (`rateLimitGate`, `approvalChainGate`,
+   * cumulative `costGate`) should prefer `ctx.store` over a closure-bound
+   * store so a single server-level store can drive multiple gates.
+   */
+  store?: GateStore;
 }
 
 /**

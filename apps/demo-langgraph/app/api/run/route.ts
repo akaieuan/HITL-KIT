@@ -4,10 +4,15 @@ import { isHitlInterrupt } from "@hitl-kit/langgraph";
 
 export const runtime = "nodejs";
 
+const TOPIC_MAX = 200;
+
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
-  const topic =
-    (typeof body.topic === "string" && body.topic) || "climate policy review";
+  // Cap topic length to avoid unbounded user input flowing into LangGraph
+  // state. 200 chars is plenty for a research-agent topic.
+  const rawTopic =
+    typeof body.topic === "string" ? body.topic : "climate policy review";
+  const topic = rawTopic.slice(0, TOPIC_MAX) || "climate policy review";
 
   const graph = getGraph();
   const threadId = `thread-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;

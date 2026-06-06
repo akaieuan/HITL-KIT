@@ -10,6 +10,15 @@ export interface CostGateOptions {
    */
   signal?: (ctx: GateContext) => number | undefined;
   /**
+   * Behavior when no cost signal is supplied.
+   *
+   * - `false` (default): fail open. The gate cannot evaluate without a
+   *   signal, and silently passing keeps unwired adapters working.
+   * - `true`: fail closed. Denies with `code: "cost_exceeded"` and an
+   *   escalation event. Use once your adapters reliably emit cost.
+   */
+  failClosed?: boolean;
+  /**
    * If set, accumulate cost over a sliding window (per `key`) and deny
    * when the running total would exceed `maxUsd`. Without `cumulative`,
    * the gate evaluates each decision independently.
@@ -28,9 +37,21 @@ export interface CostGateOptions {
  */
 export function costGate(opts: CostGateOptions): Gate {
   const max = opts.maxUsd;
+  const failClosed = opts.failClosed ?? false;
   return async (ctx): Promise<GateDecision> => {
     const single = (opts.signal ?? defaultSignal)(ctx);
     if (single === undefined) {
+      if (failClosed) {
+        return {
+          allow: false,
+          code: "cost_exceeded",
+          reason: `no cost signal and failClosed=true (max $${max.toFixed(4)})`,
+          escalate: opts.escalate
+            ? opts.escalate(ctx, -1)
+            : defaultEscalate(-1, max),
+          meta: { failClosed: true, max },
+        };
+      }
       return { allow: true, meta: { reason: "no cost signal" } };
     }
 

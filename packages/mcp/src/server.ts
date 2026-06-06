@@ -58,10 +58,7 @@ export function createHitlKitServer(
   const onDeny = opts.onDeny ?? "escalate";
   const serverGates = opts.gates ?? [];
   const perToolGates = opts.perToolGates ?? {};
-
-  // Touch `opts.store` so unused-arg lint is satisfied and consumers can
-  // wire it through to gate factories themselves at construction time.
-  void opts.store;
+  const store = opts.store;
 
   const server = new Server(
     {
@@ -140,6 +137,7 @@ export function createHitlKitServer(
         args: parseResult.data,
         onDeny,
         signals,
+        store,
       });
       if (!gateResult.decision.allow && gateResult.toolResult) {
         return gateResult.toolResult;

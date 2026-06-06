@@ -4,6 +4,33 @@ import { z } from "zod";
  * Shared enums and building blocks reused across primitive events.
  */
 
+/**
+ * URL string that is guaranteed to be HTTP(S). Plain `z.string().url()`
+ * accepts `javascript:` and `data:` URIs (because Node's URL constructor
+ * parses them) — a malicious agent emitting one would let
+ * `<a href={url}>` execute script when clicked. This refinement rejects
+ * anything other than `http://` or `https://`.
+ */
+export const SafeUrlSchema = z
+  .string()
+  .url()
+  .refine((u) => /^https?:\/\//i.test(u), {
+    message: "url must use http(s) scheme",
+  });
+
+/**
+ * Conservative caps for user-controlled strings. The schemas use these to
+ * limit DoS surface: a 50MB title would slow the renderer and blow up
+ * JSON.stringify in the MCP server. Tune up if a legitimate use case
+ * requires longer.
+ */
+const TITLE_MAX = 200;
+const SUBTITLE_MAX = 500;
+const LABEL_MAX = 200;
+const BODY_MAX = 5000;
+const SCOPE_MAX = 128;
+const TOOL_NAME_MAX = 200;
+
 export const AgentStatusSchema = z.enum([
   "idle",
   "running",
@@ -21,18 +48,20 @@ export type ApprovalState = z.infer<typeof ApprovalStateSchema>;
 
 export const HitlCardEventSchema = z.object({
   kind: z.literal("hitl.card"),
-  id: z.string().optional(),
+  id: z.string().max(LABEL_MAX).optional(),
   variant: z.enum(["search", "review", "write"]),
-  title: z.string(),
-  subtitle: z.string(),
-  steps: z.array(
-    z.object({
-      label: z.string(),
-      done: z.boolean(),
-    }),
-  ),
-  runLabel: z.string(),
-  editPlaceholder: z.string().optional(),
+  title: z.string().max(TITLE_MAX),
+  subtitle: z.string().max(SUBTITLE_MAX),
+  steps: z
+    .array(
+      z.object({
+        label: z.string().max(LABEL_MAX),
+        done: z.boolean(),
+      }),
+    )
+    .max(50),
+  runLabel: z.string().max(LABEL_MAX),
+  editPlaceholder: z.string().max(LABEL_MAX).optional(),
 });
 export type HitlCardEvent = z.infer<typeof HitlCardEventSchema>;
 
@@ -40,10 +69,10 @@ export type HitlCardEvent = z.infer<typeof HitlCardEventSchema>;
 
 export const SubagentStatusEventSchema = z.object({
   kind: z.literal("subagent.status"),
-  id: z.string().optional(),
+  id: z.string().max(LABEL_MAX).optional(),
   status: AgentStatusSchema,
-  label: z.string(),
-  detail: z.string().optional(),
+  label: z.string().max(LABEL_MAX),
+  detail: z.string().max(SUBTITLE_MAX).optional(),
 });
 export type SubagentStatusEvent = z.infer<typeof SubagentStatusEventSchema>;
 
@@ -51,15 +80,15 @@ export type SubagentStatusEvent = z.infer<typeof SubagentStatusEventSchema>;
 
 export const TraceStepSchema = z.object({
   type: z.enum(["thought", "action", "result"]),
-  label: z.string(),
-  detail: z.string().optional(),
+  label: z.string().max(LABEL_MAX),
+  detail: z.string().max(BODY_MAX).optional(),
 });
 export type TraceStep = z.infer<typeof TraceStepSchema>;
 
 export const MiniTraceEventSchema = z.object({
   kind: z.literal("trace.mini"),
-  id: z.string().optional(),
-  steps: z.array(TraceStepSchema),
+  id: z.string().max(LABEL_MAX).optional(),
+  steps: z.array(TraceStepSchema).max(100),
 });
 export type MiniTraceEvent = z.infer<typeof MiniTraceEventSchema>;
 
@@ -67,9 +96,9 @@ export type MiniTraceEvent = z.infer<typeof MiniTraceEventSchema>;
 
 export const AiGenerationScaleEventSchema = z.object({
   kind: z.literal("scale.ai_generation"),
-  id: z.string().optional(),
+  id: z.string().max(LABEL_MAX).optional(),
   value: z.number().int().min(0).max(4),
-  labels: z.array(z.string()).length(5).optional(),
+  labels: z.array(z.string().max(LABEL_MAX)).length(5).optional(),
 });
 export type AiGenerationScaleEvent = z.infer<
   typeof AiGenerationScaleEventSchema
@@ -78,15 +107,15 @@ export type AiGenerationScaleEvent = z.infer<
 /* ─── 05. Context Chips ─────────────────────────────────────────────────── */
 
 export const ContextChipItemSchema = z.object({
-  id: z.string(),
-  label: z.string(),
-  color: z.string(),
+  id: z.string().max(LABEL_MAX),
+  label: z.string().max(LABEL_MAX),
+  color: z.string().max(LABEL_MAX),
 });
 export type ContextChipItem = z.infer<typeof ContextChipItemSchema>;
 
 export const ContextChipsEventSchema = z.object({
   kind: z.literal("chips.context"),
-  items: z.array(ContextChipItemSchema),
+  items: z.array(ContextChipItemSchema).max(200),
 });
 export type ContextChipsEvent = z.infer<typeof ContextChipsEventSchema>;
 
@@ -95,30 +124,30 @@ export type ContextChipsEvent = z.infer<typeof ContextChipsEventSchema>;
 export const QAQuestionSchema = z.discriminatedUnion("kind", [
   z.object({
     kind: z.literal("single"),
-    id: z.string(),
-    prompt: z.string(),
-    options: z.array(z.string()),
+    id: z.string().max(LABEL_MAX),
+    prompt: z.string().max(BODY_MAX),
+    options: z.array(z.string().max(LABEL_MAX)).max(50),
   }),
   z.object({
     kind: z.literal("multi"),
-    id: z.string(),
-    prompt: z.string(),
-    options: z.array(z.string()),
+    id: z.string().max(LABEL_MAX),
+    prompt: z.string().max(BODY_MAX),
+    options: z.array(z.string().max(LABEL_MAX)).max(50),
   }),
   z.object({
     kind: z.literal("text"),
-    id: z.string(),
-    prompt: z.string(),
-    placeholder: z.string().optional(),
+    id: z.string().max(LABEL_MAX),
+    prompt: z.string().max(BODY_MAX),
+    placeholder: z.string().max(LABEL_MAX).optional(),
   }),
 ]);
 export type QAQuestion = z.infer<typeof QAQuestionSchema>;
 
 export const QAFlowEventSchema = z.object({
   kind: z.literal("qa.flow"),
-  id: z.string().optional(),
-  questions: z.array(QAQuestionSchema),
-  submitLabel: z.string().optional(),
+  id: z.string().max(LABEL_MAX).optional(),
+  questions: z.array(QAQuestionSchema).max(50),
+  submitLabel: z.string().max(LABEL_MAX).optional(),
 });
 export type QAFlowEvent = z.infer<typeof QAFlowEventSchema>;
 
@@ -126,12 +155,12 @@ export type QAFlowEvent = z.infer<typeof QAFlowEventSchema>;
 
 export const WritingAgentEventSchema = z.object({
   kind: z.literal("agent.writing"),
-  id: z.string().optional(),
+  id: z.string().max(LABEL_MAX).optional(),
   status: AgentStatusSchema,
-  title: z.string(),
-  target: z.string(),
-  wordRange: z.string(),
-  evidence: z.array(z.string()),
+  title: z.string().max(TITLE_MAX),
+  target: z.string().max(LABEL_MAX),
+  wordRange: z.string().max(LABEL_MAX),
+  evidence: z.array(z.string().max(BODY_MAX)).max(100),
 });
 export type WritingAgentEvent = z.infer<typeof WritingAgentEventSchema>;
 
@@ -139,25 +168,29 @@ export type WritingAgentEvent = z.infer<typeof WritingAgentEventSchema>;
 
 export const ResearchAgentEventSchema = z.object({
   kind: z.literal("agent.research"),
-  id: z.string().optional(),
+  id: z.string().max(LABEL_MAX).optional(),
   mode: z.enum(["create", "followup", "readurl"]),
-  config: z.record(z.string(), z.string()),
+  config: z
+    .record(z.string().max(LABEL_MAX), z.string().max(BODY_MAX))
+    .refine((c) => Object.keys(c).length <= 50, {
+      message: "config has more than 50 keys",
+    }),
 });
 export type ResearchAgentEvent = z.infer<typeof ResearchAgentEventSchema>;
 
 /* ─── 09. Batch Queue ───────────────────────────────────────────────────── */
 
 export const BatchQueueItemSchema = z.object({
-  id: z.string(),
-  label: z.string(),
-  kind: z.string(), // semantic kind ("search" | "write" | "research" | ...), consumer maps to icon
+  id: z.string().max(LABEL_MAX),
+  label: z.string().max(BODY_MAX),
+  kind: z.string().max(LABEL_MAX), // semantic kind ("search" | "write" | "research" | ...), consumer maps to icon
 });
 export type BatchQueueItem = z.infer<typeof BatchQueueItemSchema>;
 
 export const BatchQueueEventSchema = z.object({
   kind: z.literal("batch.queue"),
-  id: z.string().optional(),
-  items: z.array(BatchQueueItemSchema),
+  id: z.string().max(LABEL_MAX).optional(),
+  items: z.array(BatchQueueItemSchema).max(500),
 });
 export type BatchQueueEvent = z.infer<typeof BatchQueueEventSchema>;
 
@@ -165,13 +198,13 @@ export type BatchQueueEvent = z.infer<typeof BatchQueueEventSchema>;
 
 export const SearchResultEventSchema = z.object({
   kind: z.literal("result.search"),
-  id: z.string().optional(),
+  id: z.string().max(LABEL_MAX).optional(),
   rank: z.number().int(),
-  title: z.string(),
-  authors: z.string(),
-  venue: z.string(),
-  year: z.union([z.number(), z.string()]),
-  snippet: z.string(),
+  title: z.string().max(TITLE_MAX),
+  authors: z.string().max(SUBTITLE_MAX),
+  venue: z.string().max(LABEL_MAX),
+  year: z.union([z.number(), z.string().max(LABEL_MAX)]),
+  snippet: z.string().max(BODY_MAX),
   relevance: z.number().min(0).max(1),
   cites: z.number().optional(),
 });
@@ -181,10 +214,10 @@ export type SearchResultEvent = z.infer<typeof SearchResultEventSchema>;
 
 export const ApproveRejectEventSchema = z.object({
   kind: z.literal("approval.binary"),
-  id: z.string().optional(),
-  label: z.string(),
-  meta: z.string().optional(),
-  accent: z.string().optional(),
+  id: z.string().max(LABEL_MAX).optional(),
+  label: z.string().max(LABEL_MAX),
+  meta: z.string().max(SUBTITLE_MAX).optional(),
+  accent: z.string().max(LABEL_MAX).optional(),
   state: ApprovalStateSchema,
 });
 export type ApproveRejectEvent = z.infer<typeof ApproveRejectEventSchema>;
@@ -192,41 +225,41 @@ export type ApproveRejectEvent = z.infer<typeof ApproveRejectEventSchema>;
 /* ─── 12. Diff Result ───────────────────────────────────────────────────── */
 
 export const DiffHunkSchema = z.object({
-  before: z.string(),
-  after: z.string(),
+  before: z.string().max(BODY_MAX * 4), // 20KB cap for diff content per side
+  after: z.string().max(BODY_MAX * 4),
   startLine: z.number().int().optional(),
 });
 export type DiffHunk = z.infer<typeof DiffHunkSchema>;
 
 export const DiffResultEventSchema = z.object({
   kind: z.literal("result.diff"),
-  id: z.string().optional(),
-  title: z.string(),
-  subtitle: z.string().optional(),
-  language: z.string().optional(),
-  hunks: z.array(DiffHunkSchema).min(1),
-  acceptLabel: z.string().optional(),
-  rejectLabel: z.string().optional(),
+  id: z.string().max(LABEL_MAX).optional(),
+  title: z.string().max(TITLE_MAX),
+  subtitle: z.string().max(SUBTITLE_MAX).optional(),
+  language: z.string().max(LABEL_MAX).optional(),
+  hunks: z.array(DiffHunkSchema).min(1).max(100),
+  acceptLabel: z.string().max(LABEL_MAX).optional(),
+  rejectLabel: z.string().max(LABEL_MAX).optional(),
 });
 export type DiffResultEvent = z.infer<typeof DiffResultEventSchema>;
 
 /* ─── 13. Citation Result ───────────────────────────────────────────────── */
 
 export const CitationSourceSchema = z.object({
-  title: z.string(),
-  authors: z.string(),
-  year: z.union([z.number(), z.string()]),
-  venue: z.string().optional(),
-  url: z.string().url().optional(),
-  quote: z.string().optional(),
-  pages: z.string().optional(),
+  title: z.string().max(TITLE_MAX),
+  authors: z.string().max(SUBTITLE_MAX),
+  year: z.union([z.number(), z.string().max(LABEL_MAX)]),
+  venue: z.string().max(LABEL_MAX).optional(),
+  url: SafeUrlSchema.optional(),
+  quote: z.string().max(BODY_MAX).optional(),
+  pages: z.string().max(LABEL_MAX).optional(),
 });
 export type CitationSource = z.infer<typeof CitationSourceSchema>;
 
 export const CitationResultEventSchema = z.object({
   kind: z.literal("result.citation"),
-  id: z.string().optional(),
-  claim: z.string(),
+  id: z.string().max(LABEL_MAX).optional(),
+  claim: z.string().max(BODY_MAX),
   source: CitationSourceSchema,
   confidence: z.number().min(0).max(1).optional(),
 });
@@ -235,20 +268,20 @@ export type CitationResultEvent = z.infer<typeof CitationResultEventSchema>;
 /* ─── 14. Editable Plan ─────────────────────────────────────────────────── */
 
 export const PlanStepSchema = z.object({
-  id: z.string(),
-  label: z.string(),
-  detail: z.string().optional(),
+  id: z.string().max(LABEL_MAX),
+  label: z.string().max(LABEL_MAX),
+  detail: z.string().max(BODY_MAX).optional(),
   locked: z.boolean().optional(),
 });
 export type PlanStep = z.infer<typeof PlanStepSchema>;
 
 export const EditablePlanEventSchema = z.object({
   kind: z.literal("plan.editable"),
-  id: z.string().optional(),
-  title: z.string(),
-  subtitle: z.string().optional(),
-  steps: z.array(PlanStepSchema).min(1),
-  submitLabel: z.string().optional(),
+  id: z.string().max(LABEL_MAX).optional(),
+  title: z.string().max(TITLE_MAX),
+  subtitle: z.string().max(SUBTITLE_MAX).optional(),
+  steps: z.array(PlanStepSchema).min(1).max(100),
+  submitLabel: z.string().max(LABEL_MAX).optional(),
 });
 export type EditablePlanEvent = z.infer<typeof EditablePlanEventSchema>;
 
@@ -257,19 +290,67 @@ export type EditablePlanEvent = z.infer<typeof EditablePlanEventSchema>;
 export const ToolCallSignalsSchema = z.object({
   confidence: z.number().min(0).max(1).optional(),
   costUsd: z.number().min(0).optional(),
-  scope: z.array(z.string()).optional(),
+  scope: z.array(z.string().max(SCOPE_MAX)).max(64).optional(),
 });
 export type ToolCallSignals = z.infer<typeof ToolCallSignalsSchema>;
 
+const MAX_ARGS_DEPTH = 6;
+const MAX_ARGS_KEYS = 64;
+const MAX_ARGS_SERIALIZED = 64 * 1024; // 64 KB
+
+/**
+ * Defense against deeply-nested or oversized tool-call args. JSON.stringify
+ * is O(n²) on deep structures and the MCP server stringifies the parsed
+ * event before returning. A 100-level nested object can hang the server.
+ * We cap depth, top-level key count, and total serialized size.
+ */
+function isToolCallArgsSafe(value: unknown): boolean {
+  if (typeof value !== "object" || value === null) return false;
+  if (Object.keys(value).length > MAX_ARGS_KEYS) return false;
+
+  let serialized: string;
+  try {
+    serialized = JSON.stringify(value);
+  } catch {
+    return false; // circular ref or non-serializable
+  }
+  if (serialized.length > MAX_ARGS_SERIALIZED) return false;
+
+  const seen = new WeakSet<object>();
+  const check = (v: unknown, depth: number): boolean => {
+    if (depth > MAX_ARGS_DEPTH) return false;
+    if (v === null || typeof v !== "object") return true;
+    if (seen.has(v as object)) return false; // circular
+    seen.add(v as object);
+    if (Array.isArray(v)) {
+      for (const item of v) if (!check(item, depth + 1)) return false;
+      return true;
+    }
+    for (const key of Object.keys(v)) {
+      // Block prototype-pollution attempts at the schema layer too,
+      // belt-and-braces with Zod's record key validation.
+      if (key === "__proto__" || key === "constructor" || key === "prototype")
+        return false;
+      if (!check((v as Record<string, unknown>)[key], depth + 1)) return false;
+    }
+    return true;
+  };
+  return check(value, 0);
+}
+
 export const ToolCallPreviewEventSchema = z.object({
   kind: z.literal("tool.call"),
-  id: z.string().optional(),
-  toolName: z.string(),
-  rationale: z.string().optional(),
-  args: z.record(z.string(), z.unknown()),
+  id: z.string().max(LABEL_MAX).optional(),
+  toolName: z.string().max(TOOL_NAME_MAX),
+  rationale: z.string().max(BODY_MAX).optional(),
+  args: z
+    .record(z.string().max(LABEL_MAX), z.unknown())
+    .refine(isToolCallArgsSafe, {
+      message: `args must be <=${MAX_ARGS_KEYS} keys, <=${MAX_ARGS_DEPTH} levels deep, <=${MAX_ARGS_SERIALIZED} bytes, no prototype keys, no cycles`,
+    }),
   signals: ToolCallSignalsSchema.optional(),
-  approveLabel: z.string().optional(),
-  rejectLabel: z.string().optional(),
+  approveLabel: z.string().max(LABEL_MAX).optional(),
+  rejectLabel: z.string().max(LABEL_MAX).optional(),
 });
 export type ToolCallPreviewEvent = z.infer<typeof ToolCallPreviewEventSchema>;
 

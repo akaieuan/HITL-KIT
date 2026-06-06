@@ -11,9 +11,21 @@ export interface ConfidenceGateOptions {
    */
   signal?: (ctx: GateContext) => number | undefined;
   /**
+   * Behavior when no confidence signal is supplied.
+   *
+   * - `false` (default): fail open. A confidence gate that denies when
+   *   confidence is unknown would block every legitimate call from
+   *   adapters that haven't been wired to emit confidence yet.
+   * - `true`: fail closed. Denies with `code: "confidence_too_low"` and
+   *   the default (or custom) escalation event. Use in production once
+   *   you're sure adapters are reliably populating the signal.
+   */
+  failClosed?: boolean;
+  /**
    * Optional escalation event surfaced when the gate denies. Receives the
    * actual score so you can render it in the UI. If omitted, a generic
-   * `hitl.card` is built describing the breach.
+   * `hitl.card` is built describing the breach. Called with `-1` when
+   * `failClosed` triggers due to a missing signal.
    */
   escalate?: (ctx: GateContext, score: number) => HitlEvent;
 }
@@ -26,12 +38,21 @@ export interface ConfidenceGateOptions {
  */
 export function confidenceGate(opts: ConfidenceGateOptions): Gate {
   const min = opts.min;
+  const failClosed = opts.failClosed ?? false;
   return async (ctx): Promise<GateDecision> => {
     const score = (opts.signal ?? defaultSignal)(ctx);
     if (score === undefined) {
-      // No signal supplied — fail open. A confidence gate that fires when
-      // confidence is unknown would block every legitimate call from
-      // adapters that don't yet emit confidence.
+      if (failClosed) {
+        return {
+          allow: false,
+          code: "confidence_too_low",
+          reason: `no confidence signal and failClosed=true (min ${min.toFixed(2)})`,
+          escalate: opts.escalate
+            ? opts.escalate(ctx, -1)
+            : defaultEscalate(-1, min),
+          meta: { failClosed: true, min },
+        };
+      }
       return { allow: true, meta: { reason: "no confidence signal" } };
     }
     if (score >= min) {

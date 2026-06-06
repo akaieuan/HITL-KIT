@@ -1,6 +1,6 @@
 {
   "name": "@hitl-kit/langgraph",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "LangGraph adapter for HITL Kit. Emit schema-conformant HITL events from LangGraph interrupt() nodes and resume with typed Command payloads.",
   "keywords": [
     "hitl",
@@ -20,7 +20,10 @@
       "import": "./dist/index.js"
     }
   },
-  "files": ["dist", "README.md"],
+  "files": [
+    "dist",
+    "README.md"
+  ],
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
@@ -35,7 +38,7 @@
     "@langchain/langgraph": ">=1.0.0"
   },
   "devDependencies": {
-    "@langchain/langgraph": "^1.2.9",
+    "@langchain/langgraph": "^1.3.6",
     "tsup": "^8.5.0",
     "typescript": "^5"
   },
