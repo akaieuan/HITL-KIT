@@ -28,17 +28,21 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # Build @hitl-kit/* packages first so their dist/ exists. Each
+      # adapter typechecks against its dependent's published types
+      # (resolved via "types" / "exports" in package.json), so a fresh
+      # CI checkout needs these built before tsc can resolve them.
+      - name: Build @hitl-kit/* packages
+        run: pnpm packages:build
+
       - name: Typecheck root
         run: pnpm typecheck
 
-      - name: Typecheck packages
+      - name: Typecheck @hitl-kit/* packages
         run: pnpm packages:typecheck
 
       - name: Tests
         run: pnpm test
-
-      - name: Build packages
-        run: pnpm packages:build
 
   audit:
     name: Dependency audit (fail on high+)

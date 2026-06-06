@@ -15,7 +15,7 @@
     "packages:typecheck": "pnpm --filter '@hitl-kit/*' typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
-    "verify": "pnpm typecheck && pnpm packages:typecheck && pnpm test && pnpm registry:check && pnpm build",
+    "verify": "pnpm packages:build && pnpm typecheck && pnpm packages:typecheck && pnpm test && pnpm registry:check && pnpm build",
     "smoke-test": "bash scripts/smoke-test.sh local",
     "smoke-test:prod": "bash scripts/smoke-test.sh prod"
   },
