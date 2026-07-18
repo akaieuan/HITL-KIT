@@ -14,6 +14,12 @@ HITL Kit is part of [**akaOSS**](https://www.akaoss.dev) — the site, docs, [pa
 
 ---
 
+## Why it exists
+
+95% of enterprise AI pilots fail — not because the models are bad, but because we measure the wrong thing. Current benchmarks ask *"can the model complete this task autonomously?"* Deployment asks *"does it respect the user's authority, preserve their agency, and make them better over time?"* The gap between those two questions is where pilots die — and every primitive in this kit exists because something falls into it.
+
+The design discipline: each of the fifteen UI primitives is the physical embodiment of a specific claim from [An AI Measurement Problem](https://www.akaoss.dev/paper). The MiniTrace instantiates HotpotQA's supporting-facts requirement; the AI Generation Scale operationalises Dhillon et al.'s scaffolding findings; the Interrupt Card is the agency-preservation boundary. If a primitive can't be tied to a claim the paper defends, it doesn't ship. The packages below carry that protocol into real agent stacks. Full deep-dive: [akaoss.dev/projects/hitl-kit](https://www.akaoss.dev/projects/hitl-kit).
+
 ## Packages
 
 | Package | Version | Description |
