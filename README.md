@@ -6,105 +6,48 @@
 
 # HITL Kit
 
-> Human-in-the-loop AI, measured properly.
+> Human-in-the-loop primitives for agentic UIs.
 
-[**Read the paper**](https://www.hitlkit.dev/paper) · [**Browse components**](https://www.hitlkit.dev/components) · [**Registry install reference**](https://www.hitlkit.dev/registry) · [**GitHub**](https://github.com/akaieuan/HITL-KIT)
+HITL Kit is part of [**akaOSS**](https://www.akaoss.dev) — the site, docs, [paper](https://www.akaoss.dev/paper), and [component registry](https://www.akaoss.dev/registry) live at [akaoss.dev](https://www.akaoss.dev). **This repo is the `@hitl-kit/*` library monorepo**: six npm packages, the LangGraph demo app, and design docs.
 
-> [!NOTE]
-> **HITL Kit is now part of [akaOSS](https://github.com/akaieuan/akaOSS)** — the studio site and the component registry source have moved to that repo and are served at [akaoss.dev](https://www.akaoss.dev). Existing `hitlkit.dev/r/*.json` install URLs keep working. **This repo remains the home of the `@hitl-kit/*` npm packages** (core, react, gates, langgraph, ai-sdk, mcp) and the LangGraph demo.
-
-**Status:** v0.6 · Publicly deployed at [hitlkit.dev](https://www.hitlkit.dev). 15 primitives installable via shadcn CLI. Six packages live on npm: `@hitl-kit/core`, `@hitl-kit/react`, `@hitl-kit/gates`, `@hitl-kit/langgraph`, `@hitl-kit/ai-sdk`, `@hitl-kit/mcp`. End-to-end demos + MCP server verified. 43 tests covering the schema and every gate.
+[**Project page**](https://www.akaoss.dev/projects/hitl-kit) · [**Components gallery**](https://www.akaoss.dev/components) · [**Registry**](https://www.akaoss.dev/registry) · [**Paper**](https://www.akaoss.dev/paper)
 
 ---
 
-## Why this exists
+## Packages
 
-**95% of enterprise AI pilots fail.** Not because the models are bad — because we measure the wrong thing.
-
-Current benchmarks ask "can the model complete this task autonomously?" But in deployment, real users don't want autonomy. They want an assistant that respects their authority, preserves their agency, and makes them better over time. The benchmark-to-deployment gap is the gap between these two questions.
-
-**HITL Kit is the argument that we should measure AI differently, and the components that make the alternative buildable.**
-
-Three coordinated artifacts, one project:
-
-### 1. A perspective paper
-
-[**An AI Measurement Problem**](https://www.hitlkit.dev/paper). A synthesis of benchmark saturation research (Ott et al., 2022), cognitive-debt findings from AI-assisted learning (Kosmyna et al., 2025), scaffolding theory (Dhillon et al., 2024), uncertainty quantification (Liu et al., 2025), and the MIT NANDA enterprise failure report (Challapally et al., 2025). The paper argues for the **Assist-Not-Complete** paradigm: evaluate AI on whether it assists humans without displacing them, not on whether it can finish the task alone.
-
-### 2. A component library
-
-Fifteen React primitives for human-in-the-loop agentic UIs. Each primitive is the physical embodiment of a specific claim from the paper. The [MiniTrace](https://www.hitlkit.dev/components#trace) instantiates the supporting-facts requirement from HotpotQA (Yang et al., 2018). The [AI Generation Scale](https://www.hitlkit.dev/components#ai-scale) operationalises Dhillon's scaffolding principle. The [Interrupt Card](https://www.hitlkit.dev/components#hitl) is the agency-preservation boundary. Every component ties to a research claim.
-
-### 3. A shadcn-compatible registry
-
-Every primitive installs with one CLI command:
-
-```bash
-npx shadcn@latest add https://www.hitlkit.dev/r/hitl-card.json
-```
-
-No fork, no vendor lock-in, no wrapper SDK. Same tokens, same Radix primitives, same Tailwind conventions as shadcn/ui. The CLI resolves transitive registry dependencies and npm deps automatically. Copy, paste, own.
-
-Together: the paper is the argument, the components are the proof the argument is implementable, the registry is how you adopt it.
-
----
-
-## The three artifacts (technical)
-
-| Artifact | Distribution | Live at |
+| Package | Version | Description |
 |---|---|---|
-| **Paper** | Markdown in-repo, rendered on site | [hitlkit.dev/paper](https://www.hitlkit.dev/paper) |
-| **Component library** (15 primitives) | Shadcn registry JSON endpoints | [hitlkit.dev/r/*.json](https://www.hitlkit.dev/registry) |
-| **`@hitl-kit/core`** (Zod event schemas) | npm | [packages/core](./packages/core) |
-| **`@hitl-kit/react`** (`HitlEventRenderer`) | npm | [packages/react](./packages/react) |
-| **`@hitl-kit/gates`** (5 composable decision gates) | npm | [packages/gates](./packages/gates) |
-| **`@hitl-kit/langgraph`** / **`@hitl-kit/ai-sdk`** / **`@hitl-kit/mcp`** | npm | [packages/](./packages) |
+| [`@hitl-kit/core`](https://www.npmjs.com/package/@hitl-kit/core) | 0.5.0 | Zod event schemas for human-in-the-loop AI primitives. Framework-agnostic protocol shared by every HITL Kit adapter. |
+| [`@hitl-kit/react`](https://www.npmjs.com/package/@hitl-kit/react) | 0.4.2 | `HitlEventRenderer`, a typed dispatcher that maps validated HITL events to React primitives. Pair with `@hitl-kit/core` and any shadcn-installed HITL primitives. |
+| [`@hitl-kit/gates`](https://www.npmjs.com/package/@hitl-kit/gates) | 0.2.0 | Composable decision gates (confidence, cost, scope, approval chain, rate limit). Pure functions that wrap any adapter's emit point and decide allow / deny / escalate. |
+| [`@hitl-kit/langgraph`](https://www.npmjs.com/package/@hitl-kit/langgraph) | 0.6.1 | LangGraph adapter. Emit schema-conformant HITL events from LangGraph `interrupt()` nodes and resume with typed `Command` payloads. |
+| [`@hitl-kit/ai-sdk`](https://www.npmjs.com/package/@hitl-kit/ai-sdk) | 0.7.1 | Vercel AI SDK adapter. Typed `tool()` wrappers that return schema-conformant HITL events so `<HitlEventRenderer />` can dispatch them client-side. |
+| [`@hitl-kit/mcp`](https://www.npmjs.com/package/@hitl-kit/mcp) | 0.8.0 | MCP server exposing the 15 HITL primitive event kinds as MCP tools, so Claude Code, Cursor, Claude Desktop, and any MCP-aware client can emit schema-validated human-in-the-loop events. |
 
 ---
 
-## Install a primitive
+## Install
 
-### Prerequisites
-
-A Tailwind project with shadcn/ui initialized. If you don't have that yet:
-
-```bash
-npx shadcn@latest init
-```
-
-### Add HITL Kit accent tokens to your globals.css
-
-HITL Kit primitives reference custom CSS variables for kind-semantic color. Paste this into `app/globals.css`:
-
-```css
-:root {
-  --accent-violet:  #a78bfa;
-  --accent-amber:   #fbbf24;
-  --accent-emerald: #4ade80;
-  --accent-rose:    #fb7185;
-  --accent-blue:    #007AFF;
-}
-```
-
-### Install
-
-```bash
-npx shadcn@latest add https://www.hitlkit.dev/r/hitl-card.json
-```
-
-The CLI resolves registry dependencies (`hitl-utils`, `hitl-types`) and npm dependencies (`lucide-react`) automatically.
-
-Swap `hitl-card.json` for any primitive name from the table below. Full install reference with copy-buttons at [hitlkit.dev/registry](https://www.hitlkit.dev/registry).
-
----
-
-## Use the event renderer (v0.3+)
-
-For agentic UIs, pair the components with `@hitl-kit/core` (Zod event schemas) and `@hitl-kit/react` (`HitlEventRenderer`):
+The library packages install from npm:
 
 ```bash
 pnpm add @hitl-kit/core @hitl-kit/react
 ```
+
+The UI primitives install via the shadcn CLI from the HITL Kit registry (served by the akaOSS site — these URLs keep working):
+
+```bash
+npx shadcn@latest add https://www.hitlkit.dev/r/hitl-card.json
+```
+
+The CLI resolves registry dependencies (`hitl-utils`, `hitl-types`) and npm dependencies (`lucide-react`) automatically. Browse every primitive with copy-paste install commands at [akaoss.dev/registry](https://www.akaoss.dev/registry), and see them live at [akaoss.dev/components](https://www.akaoss.dev/components).
+
+---
+
+## Use the event renderer
+
+For agentic UIs, pair the components with `@hitl-kit/core` (Zod event schemas) and `@hitl-kit/react` (`HitlEventRenderer`):
 
 ```tsx
 import { createRegistry, HitlEventRenderer } from "@hitl-kit/react";
@@ -135,15 +78,13 @@ The renderer validates the event at runtime via the shared Zod schema, narrows o
 
 ---
 
-## Use with LangGraph (v0.4)
+## Use with LangGraph
 
 `@hitl-kit/langgraph` turns LangGraph's native `interrupt()` / `Command({ resume })` primitive into a typed HITL event producer. The graph pauses, the UI renders a primitive via `<HitlEventRenderer />`, the human acts, the graph resumes. End-to-end, no glue.
 
 ```bash
 pnpm add @hitl-kit/core @hitl-kit/react @hitl-kit/langgraph @langchain/langgraph
 ```
-
-Emit an interrupt inside a graph node:
 
 ```ts
 import { StateGraph, interrupt } from "@langchain/langgraph";
@@ -165,24 +106,11 @@ const approval = interrupt(
 // graph pauses; Command({ resume: { approved: true } }) causes this line to return { approved: true }
 ```
 
-On the client, guard with `isHitlInterrupt` and render through the same `<HitlEventRenderer />`:
-
-```tsx
-import { isHitlInterrupt } from "@hitl-kit/langgraph";
-import { HitlEventRenderer } from "@hitl-kit/react";
-
-if (isHitlInterrupt(interruptValue)) {
-  return <HitlEventRenderer event={interruptValue.event} registry={registry} onAction={onResume} />;
-}
-```
-
-Every primitive has a matching `create<Name>Interrupt` helper that validates against the core Zod schema at emit time, so a malformed event throws inside the graph node rather than surfacing on the client.
-
-**Working demo**: [`apps/demo-langgraph`](./apps/demo-langgraph) — a minimal Next.js app that runs a LangGraph with one interrupt node, renders the Interrupt Card, accepts approval, and resumes the graph. Run it locally with `pnpm --filter demo-langgraph dev`.
+On the client, guard with `isHitlInterrupt` and render through the same `<HitlEventRenderer />`. Every primitive has a matching `create<Name>Interrupt` helper that validates against the core Zod schema at emit time, so a malformed event throws inside the graph node rather than surfacing on the client.
 
 ---
 
-## Use with Vercel AI SDK (v0.5a)
+## Use with Vercel AI SDK
 
 `@hitl-kit/ai-sdk` provides 15 typed `tool()` wrappers — one per HITL Kit primitive — that return validated HITL events as tool results. Since AI SDK has no native interrupt primitive, the adapter returns "awaiting human" as a tool-call result; the consumer renders the event and appends a follow-up user message to continue the conversation.
 
@@ -190,11 +118,9 @@ Every primitive has a matching `create<Name>Interrupt` helper that validates aga
 pnpm add @hitl-kit/core @hitl-kit/react @hitl-kit/ai-sdk ai zod
 ```
 
-Server side, drop the tools into your `generateText` or `streamText` call:
-
 ```ts
 import { generateText } from "ai";
-import { hitlCardTool, approveRejectTool } from "@hitl-kit/ai-sdk";
+import { hitlCardTool, approveRejectTool, allHitlTools } from "@hitl-kit/ai-sdk";
 
 const result = await generateText({
   model,
@@ -207,31 +133,14 @@ const result = await generateText({
   },
 });
 // If the model calls requestHumanReview, the tool result is a validated HitlCardEvent.
+// Or pass all 15 at once: tools: allHitlTools
 ```
 
-Or import all 15 at once:
-
-```ts
-import { allHitlTools } from "@hitl-kit/ai-sdk";
-await generateText({ model, messages, tools: allHitlTools });
-```
-
-Client side, filter for HITL tool results and render:
-
-```tsx
-import { isHitlToolResult } from "@hitl-kit/ai-sdk";
-import { HitlEventRenderer } from "@hitl-kit/react";
-
-{toolResults.filter(isHitlToolResult).map((r) => (
-  <HitlEventRenderer event={r.result} registry={registry} onAction={handle} />
-))}
-```
-
-**Working demo**: [`apps/demo-langgraph/app/ai-sdk`](./apps/demo-langgraph/app/ai-sdk) — an AI SDK flow showing a typed tool call producing a validated HitlCardEvent, rendering it via `<HitlEventRenderer />`, and composing the follow-up user message on approve/dismiss. Run with `pnpm --filter demo-langgraph dev`, then open `/ai-sdk`.
+Client side, filter for HITL tool results with `isHitlToolResult` and render each through `<HitlEventRenderer />`.
 
 ---
 
-## Add gates (v0.6b)
+## Add gates
 
 A gate is a pure decision function: confidence too low? cost over budget? scope outside what's allowed? deny — and (default) surface a HITL escalation card so the human can override. Same renderer pipeline handles allow- and block-paths.
 
@@ -280,7 +189,7 @@ When a gate denies with the default `onDeny`, the result is the gate's escalatio
 
 ---
 
-## Use with MCP (v0.5b) · Claude Code, Cursor, Claude Desktop
+## Use with MCP · Claude Code, Cursor, Claude Desktop
 
 `@hitl-kit/mcp` is an MCP server that exposes all 15 primitive event kinds as tools. Drop it into any MCP-aware client and every client's agent can emit schema-validated HITL events. No per-client adapter code.
 
@@ -313,29 +222,14 @@ Once registered and the client is restarted, `hitl_interrupt_card`, `hitl_qa_flo
 
 ---
 
-## The 15 primitives
+## Demo app
 
-Every primitive is the physical embodiment of a claim from the paper.
+[`apps/demo-langgraph`](./apps/demo-langgraph) is a minimal Next.js app that exercises the whole pipeline end-to-end: a LangGraph with a real `interrupt()` node, the Interrupt Card rendered via `<HitlEventRenderer />`, approval, and `Command({ resume })`. It also has tabs for the AI SDK flow (`/ai-sdk`), gates (`/gates`), and the v0.6a primitives (`/diff`, `/citation`, `/plan`, `/tool-call`).
 
-| Component | What it is |
-|---|---|
-| `hitl-card` | In-thread approval boundary for agent actions. Three variants, four states. |
-| `subagent-status-card` | Single-row agent status. Six execution states (idle, running, completed, error, skipped, cancelled). |
-| `mini-trace` | Collapsible thought → action → result viewer. Supporting-facts pattern from §3.3 of the paper. |
-| `ai-generation-scale` | Five-segment ordinal of AI vs. human contribution. Dhillon scaffolding principle. |
-| `context-chips` | Removable pill chips for notes, files, URLs. |
-| `qa-flow` | Multi-question approval card. Single, multi, text. |
-| `writing-agent` | Compound widget for a draft-in-progress document with six status states. |
-| `research-agent` | Three-mode research config: create, follow-up, read URL. |
-| `batch-queue` | Sequential approve and reject across mixed agent items. |
-| `search-result-card` | Ranked result with relevance bar and metadata. |
-| `approve-reject-row` | The canonical binary decision row. |
-| `diff-result` | Before/after diff card for proposed text or code edits. Per-hunk red/green strips, accept/reject states. (v0.6a) |
-| `citation-result` | Single source-backed citation card. Claim, source attribution, optional supporting quote and confidence. (v0.6a) |
-| `editable-plan` | Multi-step plan the human can rename, reorder, add to, or delete from before the agent executes. Locked steps cannot be removed. (v0.6a) |
-| `tool-call-preview` | Preview a tool call (name, args, optional rationale and signals) so the human can approve or reject before execution. (v0.6a) |
-
-Plus 3 shared-lib items (`hitl-utils`, `hitl-types`, `hitl-subagent-meta`) and one `shared-primitives` palette for the atomic design tokens.
+```bash
+pnpm install
+pnpm --filter demo-langgraph dev   # http://localhost:3100
+```
 
 ---
 
@@ -343,12 +237,6 @@ Plus 3 shared-lib items (`hitl-utils`, `hitl-types`, `hitl-subagent-meta`) and o
 
 ```
 .
-├── content/paper.md              The perspective paper (markdown)
-├── docs/banner.svg               README hero image
-├── registry.json                 Shadcn registry manifest
-├── public/r/*.json               Built registry endpoints (19 files)
-├── apps/
-│   └── demo-langgraph/           End-to-end LangGraph interrupt/resume demo
 ├── packages/
 │   ├── core/                     @hitl-kit/core (Zod event schemas)
 │   ├── react/                    @hitl-kit/react (HitlEventRenderer)
@@ -356,96 +244,51 @@ Plus 3 shared-lib items (`hitl-utils`, `hitl-types`, `hitl-subagent-meta`) and o
 │   ├── langgraph/                @hitl-kit/langgraph (interrupt helpers + withGates)
 │   ├── ai-sdk/                   @hitl-kit/ai-sdk (Vercel AI SDK tool wrappers + withGates)
 │   └── mcp/                      @hitl-kit/mcp (MCP stdio server with gate hooks, hitl-kit-mcp bin)
-├── src/
-│   ├── app/                      Next.js App Router pages
-│   │   ├── page.tsx              Landing
-│   │   ├── components/page.tsx   Live component showcase
-│   │   ├── paper/page.tsx        Paper renderer
-│   │   ├── registry/page.tsx     Install-command reference
-│   │   └── test/                 Dev-only registry health dashboard
-│   ├── components/
-│   │   ├── hitl/                 The 15 primitives + 3 shared lib files
-│   │   └── site/                 Nav, Footer, brand bits
-│   └── lib/                      cn helper, content constants
-├── scripts/smoke-test.sh         End-to-end install smoke test
-├── .github/workflows/            CI (registry drift check)
-└── CONTRIBUTING.md               Verification and branch protocol
+├── apps/
+│   └── demo-langgraph/           End-to-end LangGraph interrupt/resume demo (port 3100)
+├── docs/
+│   ├── api-unification.md        v0.7 API unification design doc
+│   └── EVAL_KIT_BRIEF.md         Historical design brief
+├── .github/workflows/ci.yml     Build → typecheck → test → audit
+└── CONTRIBUTING.md              Verification and branch protocol
 ```
+
+The studio site, the paper source, and the shadcn registry source moved to [akaieuan/akaOSS](https://github.com/akaieuan/akaOSS) and are served at [akaoss.dev](https://www.akaoss.dev) and [hitlkit.dev](https://www.hitlkit.dev). Registry install URLs (`hitlkit.dev/r/*.json`) are unaffected.
 
 ---
 
-## Local development
+## Development
 
 ```bash
 pnpm install
-pnpm dev                # dev server at http://localhost:3000
-pnpm test               # run vitest across all packages
-pnpm verify             # typecheck + tests + registry drift check + build (run before pushing)
-pnpm smoke-test         # end-to-end install test (requires dev server running)
-pnpm registry:build     # regenerate public/r/*.json after editing a primitive
-pnpm packages:build     # build all @hitl-kit/* packages via tsup
+pnpm packages:build       # build all @hitl-kit/* packages via tsup
+pnpm packages:typecheck   # tsc --noEmit in every package
+pnpm test                 # vitest across packages/*/src
+pnpm verify               # all three, in order — run before pushing
 ```
 
-The verification pipeline and contribution protocol are documented in [CONTRIBUTING.md](./CONTRIBUTING.md). Substantial changes should land on a feature branch first so Vercel builds a preview deployment before merging.
+### Testing
 
----
+Vitest runs against `packages/*/src` only. Currently **63 tests across 13 files**: round-trip parse for every event kind + exhaustiveness + frozen fixtures in `@hitl-kit/core`, every gate factory, compose, store, rate-limit, and approval chain in `@hitl-kit/gates`, and integration tests per adapter (`withGates` allow + escalate + throw).
 
-## Tech stack
-
-- **Next.js 16** (App Router) + React 19
-- **Tailwind CSS v4** (native `@theme` inline)
-- **TypeScript 5**
-- **shadcn CLI** for registry building
-- **Zod 3** for event schemas (`@hitl-kit/core`)
-- **lucide-react** for icons
-- **react-markdown** + remark-gfm for the paper renderer
-- **Geist + JetBrains Mono** for typography
-- **LangGraph 1.x** via `@hitl-kit/langgraph`
-- **Vercel AI SDK 6.x** via `@hitl-kit/ai-sdk`
-- **MCP TypeScript SDK 1.x** via `@hitl-kit/mcp`
-- **pnpm workspace** monorepo (`packages/core`, `packages/react`, `packages/langgraph`, `packages/ai-sdk`, `packages/mcp`, `apps/demo-langgraph`, root site)
-
-No global state, no CSS-in-JS runtime, no wrapper SDK. Every component is copy-paste ready and yours to edit once installed.
-
----
-
-## Roadmap
-
-| Version | Scope | Status |
-|---|---|---|
-| **v0.1** | Reference site, 11 primitives as source, paper, shadcn registry built | ✅ Shipped |
-| **v0.2** | Deployed to Vercel at hitlkit.dev. Branded registry URLs at `hitlkit.dev/r/*.json`. `npx shadcn@latest add` verified end-to-end from the public domain. Loop favicon, MIT LICENSE, AssistNotComplete link component. | ✅ Shipped |
-| **v0.2.1** | GitHub Action (`.github/workflows/registry.yml`) rebuilds the registry on every push/PR and fails CI if `public/r/*.json` drifts from `registry.json`. Contributors have to run `pnpm registry:build` and commit the result. Includes `pnpm verify` / `pnpm smoke-test` + dev-only `/test` dashboard. | ✅ Shipped |
-| **v0.3** | `@hitl-kit/core` Zod event schemas for all 11 primitives + `@hitl-kit/react` `<HitlEventRenderer />` dispatcher. pnpm workspace monorepo. Workspace-linked, npm publish pending. | ✅ Shipped |
-| **v0.4** | `@hitl-kit/langgraph` adapter with `create<Name>Interrupt` helpers for all 11 primitives, `isHitlInterrupt` type guard. `apps/demo-langgraph` Next.js demo with a real LangGraph `interrupt()` → `<HitlEventRenderer />` → `Command({ resume })` flow, end-to-end verified via HTTP. | ✅ Shipped |
-| **v0.5a** | `@hitl-kit/ai-sdk` adapter: 11 typed `tool()` wrappers returning validated HitlEvents. `allHitlTools` bundle + `isHitlToolResult` type guard. Demo tab added to `apps/demo-langgraph` at `/ai-sdk`, verified end-to-end via HTTP. | ✅ Shipped |
-| **v0.5b** | `@hitl-kit/mcp` MCP server exposing all 11 primitive event kinds as tools. Each tool's JSON Schema is derived from the core Zod schema; input is Zod-validated at call time. Verified via stdio: `initialize` handshake + `tools/list` returns all 11 `hitl_*` tools with correct schemas. Works with Claude Desktop, Claude Code, Cursor, any MCP-aware client. | ✅ Shipped |
-| **v0.6a** | Four new primitives — `diff-result`, `citation-result`, `editable-plan`, `tool-call-preview` — added to core schema, every adapter (`createXInterrupt`, `xTool`, MCP `hitl_*`), the React showcase at `/components`, the shadcn registry, and `apps/demo-langgraph` (new tabs `/diff`, `/citation`, `/plan`, `/tool-call`). Schema additions are backward-compatible; existing event consumers untouched. | ✅ Shipped |
-| **v0.6b** | New `@hitl-kit/gates` package: `confidenceGate`, `costGate`, `scopeGate`, `approvalChainGate`, `rateLimitGate`, plus `composeGates` and pluggable `GateStore` (in-memory ships; Redis/DB is one interface implementation away). `withGates` wrappers on `@hitl-kit/langgraph` and `@hitl-kit/ai-sdk`; opts-object on `@hitl-kit/mcp` server (`gates`, `perToolGates`, `signals`, `onDeny`). Default deny-path returns the gate's escalation HitlEvent so `<HitlEventRenderer />` renders allow- and block-paths through the same code. New `/gates` demo tab. | ✅ Shipped |
-| **v0.6c** | Test scaffold landed: vitest at the root + per-package, 43 tests across `@hitl-kit/core` (round-trip parse for every event + exhaustiveness + frozen fixtures), `@hitl-kit/gates` (every factory, compose, store, rate-limit, approval chain), and one integration test per adapter (`withGates` allow + escalate + throw). `pnpm verify` now includes `pnpm test`. SECURITY.md, GitHub issue templates, and PR template added for OSS hygiene. A11y pass on the six highest-impact components (HitlCard, QAFlow, ApproveRejectRow, DiffResult, EditablePlan, ToolCallPreview): `aria-expanded`, `role`/`aria-checked`/`aria-controls`, focus-visible rings, and decorative icons marked `aria-hidden`. | ✅ Shipped |
-| **v0.7** | A11y pass across the remaining 9 primitives + API unification (single prop pattern, single `onAction` discriminated callback). Design doc at [`docs/api-unification.md`](./docs/api-unification.md). | 📋 Planned |
-
-**The v0.3+ ambition is LLM pluggability.** An agent running in LangGraph, Vercel AI SDK, Claude Agent SDK, or any MCP-aware client emits a structured HITL event matching a Zod schema. The renderer validates, narrows by `event.kind`, and mounts the right primitive. Tool call → UI, no wiring per component. The paper becomes the protocol; the protocol becomes the platform.
+```bash
+pnpm test          # single run
+pnpm test:watch    # watch mode
+```
 
 ---
 
 ## Contributing
 
-Issues and PRs welcome. Open an issue first for substantial changes so we can agree on scope.
-
-The verification and branch protocol is documented in [CONTRIBUTING.md](./CONTRIBUTING.md):
-
-- `pnpm verify` before every push
-- `pnpm smoke-test` for anything touching primitives or the registry
-- Feature branch + Vercel preview for substantial changes (new primitives, package restructures)
-- CI fails if `public/r/*.json` is stale
+Issues and PRs welcome. Open an issue first for substantial changes so we can agree on scope. The verification and branch protocol is documented in [CONTRIBUTING.md](./CONTRIBUTING.md) — `pnpm verify` before every push; CI runs build → typecheck → test plus a dependency audit that fails on high or critical advisories.
 
 Good first contributions:
 
-- Prop API polish on any primitive
-- Accessibility improvements (ARIA, keyboard navigation)
-- A new primitive with a clear HITL use case, plus its entry in `registry.json`
-- Documentation fixes or better Zod schema types in `packages/core`
+- Accessibility improvements (ARIA, keyboard navigation) — the v0.7 a11y pass is planned in [docs/api-unification.md](./docs/api-unification.md)
+- Better Zod schema types in `packages/core`
+- Documentation fixes
+
+Component/registry contributions (the 15 UI primitives) now belong in [akaieuan/akaOSS](https://github.com/akaieuan/akaOSS).
 
 ---
 
@@ -459,6 +302,4 @@ Good first contributions:
 
 Built by [Ieuan King](https://aka4uh.com) ([@akaieuan](https://x.com/akaieuan)).
 
-The component set was originally extracted from [Agatha](https://aka4uh.com), a research-agent workspace, and generalized into an open primitive library.
-
-The paper synthesizes work from Challapally et al. (MIT NANDA 2025), Dhillon et al. (CHI 2024), Kosmyna et al. (MIT 2025), Ott et al. (Nature Comm 2022), Yang et al. (HotpotQA 2018), Zanzotto (JAIR 2019), Liu et al. (2025), and others. Full references in the paper.
+The component set was originally extracted from [Agatha](https://aka4uh.com), a research-agent workspace, and generalized into an open primitive library. The perspective paper behind the project — [An AI Measurement Problem](https://www.akaoss.dev/paper) — argues for the Assist-Not-Complete paradigm: evaluate AI on whether it assists humans without displacing them, not on whether it can finish the task alone.

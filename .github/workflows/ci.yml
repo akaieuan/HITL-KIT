@@ -35,9 +35,6 @@ jobs:
       - name: Build @hitl-kit/* packages
         run: pnpm packages:build
 
-      - name: Typecheck root
-        run: pnpm typecheck
-
       - name: Typecheck @hitl-kit/* packages
         run: pnpm packages:typecheck
 
