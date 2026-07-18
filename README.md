@@ -10,6 +10,9 @@
 
 [**Read the paper**](https://www.hitlkit.dev/paper) · [**Browse components**](https://www.hitlkit.dev/components) · [**Registry install reference**](https://www.hitlkit.dev/registry) · [**GitHub**](https://github.com/akaieuan/HITL-KIT)
 
+> [!NOTE]
+> **HITL Kit is now part of [akaOSS](https://github.com/akaieuan/akaOSS)** — the studio site and the component registry source have moved to that repo and are served at [akaoss.dev](https://www.akaoss.dev). Existing `hitlkit.dev/r/*.json` install URLs keep working. **This repo remains the home of the `@hitl-kit/*` npm packages** (core, react, gates, langgraph, ai-sdk, mcp) and the LangGraph demo.
+
 **Status:** v0.6 · Publicly deployed at [hitlkit.dev](https://www.hitlkit.dev). 15 primitives installable via shadcn CLI. Six packages live on npm: `@hitl-kit/core`, `@hitl-kit/react`, `@hitl-kit/gates`, `@hitl-kit/langgraph`, `@hitl-kit/ai-sdk`, `@hitl-kit/mcp`. End-to-end demos + MCP server verified. 43 tests covering the schema and every gate.
 
 ---

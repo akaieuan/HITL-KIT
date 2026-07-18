@@ -48,7 +48,7 @@
   "pnpm": {
     "overrides": {
       "fast-uri": "^3.1.2",
-      "hono": "^4.12.21",
+      "hono": "^4.12.25",
       "langsmith": "^0.6.0",
       "postcss": "^8.5.10",
       "ip-address": "^10.1.1",
