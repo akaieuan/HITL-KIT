@@ -1,0 +1,13 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`@hitl-kit/gates public API > exports a stable, sorted set of runtime names 1`] = `
+[
+  "approvalChainGate",
+  "composeGates",
+  "confidenceGate",
+  "costGate",
+  "inMemoryStore",
+  "rateLimitGate",
+  "scopeGate",
+]
+`;

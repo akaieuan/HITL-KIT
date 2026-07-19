@@ -56,7 +56,7 @@ narrows inside a switch, no casting needed.
 Every event is also exported individually so you can build narrow
 adapters:
 
-```ts
+```ts check
 import { HitlCardEventSchema, type HitlCardEvent } from "@hitl-kit/core";
 ```
 

@@ -28,7 +28,7 @@ Gates are pure functions — they don't import React, they don't render, they do
 
 ## The five gates
 
-```ts
+```ts check
 import {
   composeGates,
   confidenceGate,

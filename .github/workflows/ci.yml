@@ -64,3 +64,84 @@ jobs:
 
       - name: Audit (fail on high or critical)
         run: pnpm audit --audit-level high
+
+  # ── Credibility harness: honest outside-consumer simulation ──────────────
+  publish-smoke:
+    name: Publish smoke (tarballs → fresh consumer)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Packs every package, installs the tarballs + real peers into a scratch
+      # npm consumer outside the repo, then runtime-imports + tsc (bundler &
+      # node16) + are-the-types-wrong every tarball.
+      - name: Publish smoke
+        run: pnpm smoke:publish
+
+  readme-runs:
+    name: README examples typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Typechecks every README code block opted in with a `check` fence token
+      # against the built @hitl-kit/* types.
+      - name: README check
+        run: pnpm check:readme
+
+  api-surface:
+    name: API surface (no unintended drift)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Rebuilds and regenerates api-surface/*.d.ts, then fails if the public
+      # type surface drifted from the committed baseline. Runtime export names
+      # are covered by the Vitest snapshots in the `test` job.
+      - name: API surface check
+        run: pnpm api:check
