@@ -1,0 +1,8 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`@hitl-kit/react public API > exports a stable, sorted set of runtime names 1`] = `
+[
+  "HitlEventRenderer",
+  "createRegistry",
+]
+`;

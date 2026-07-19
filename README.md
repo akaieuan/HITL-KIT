@@ -92,7 +92,7 @@ The renderer validates the event at runtime via the shared Zod schema, narrows o
 pnpm add @hitl-kit/core @hitl-kit/react @hitl-kit/langgraph @langchain/langgraph
 ```
 
-```ts
+```ts check
 import { StateGraph, interrupt } from "@langchain/langgraph";
 import { createHitlCardInterrupt } from "@hitl-kit/langgraph";
 
@@ -154,7 +154,7 @@ A gate is a pure decision function: confidence too low? cost over budget? scope 
 pnpm add @hitl-kit/gates
 ```
 
-```ts
+```ts check
 import {
   composeGates,
   confidenceGate,

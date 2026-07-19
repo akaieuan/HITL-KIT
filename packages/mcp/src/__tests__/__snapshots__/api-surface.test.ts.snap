@@ -1,0 +1,11 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`@hitl-kit/mcp public API > exports a stable, sorted set of runtime names 1`] = `
+[
+  "HITL_TOOLS",
+  "TOOL_BY_NAME",
+  "createHitlKitServer",
+  "runGates",
+  "startStdioServer",
+]
+`;

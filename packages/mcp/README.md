@@ -103,7 +103,7 @@ to pass to `<HitlEventRenderer />`.
 
 If you want to embed the HITL Kit MCP server in a custom host:
 
-```ts
+```ts check
 import { createHitlKitServer } from "@hitl-kit/mcp";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 

@@ -6,8 +6,13 @@
   "scripts": {
     "packages:build": "pnpm --filter '@hitl-kit/*' build",
     "packages:typecheck": "pnpm --filter '@hitl-kit/*' typecheck",
+    "build": "pnpm packages:build",
     "test": "vitest run",
     "test:watch": "vitest",
+    "smoke:publish": "node scripts/publish-smoke.mjs",
+    "check:readme": "node scripts/readme-check.mjs",
+    "api:check": "pnpm packages:build && node scripts/api-surface.mjs --check",
+    "api:update": "pnpm packages:build && node scripts/api-surface.mjs",
     "verify": "pnpm packages:build && pnpm packages:typecheck && pnpm test"
   },
   "devDependencies": {

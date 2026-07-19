@@ -1,0 +1,35 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`@hitl-kit/core public API > exports a stable, sorted set of runtime names 1`] = `
+[
+  "AgentStatusSchema",
+  "AiGenerationScaleEventSchema",
+  "ApprovalStateSchema",
+  "ApproveRejectEventSchema",
+  "BatchQueueEventSchema",
+  "BatchQueueItemSchema",
+  "CitationResultEventSchema",
+  "CitationSourceSchema",
+  "ContextChipItemSchema",
+  "ContextChipsEventSchema",
+  "DiffHunkSchema",
+  "DiffResultEventSchema",
+  "EditablePlanEventSchema",
+  "HITL_EVENT_KINDS",
+  "HitlCardEventSchema",
+  "HitlEventSchema",
+  "MiniTraceEventSchema",
+  "PlanStepSchema",
+  "QAFlowEventSchema",
+  "QAQuestionSchema",
+  "ResearchAgentEventSchema",
+  "SafeUrlSchema",
+  "SearchResultEventSchema",
+  "SubagentStatusEventSchema",
+  "ToolCallPreviewEventSchema",
+  "ToolCallSignalsSchema",
+  "TraceStepSchema",
+  "WritingAgentEventSchema",
+  "z",
+]
+`;

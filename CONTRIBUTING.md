@@ -97,6 +97,34 @@ If CI fails, the commit either has stale registry artifacts (run `pnpm registry:
 
 ---
 
+## Credibility harness (the `@hitl-kit/*` library)
+
+Three checks simulate an honest outside consumer of the published packages. Each has its own CI job and can be run locally.
+
+```bash
+pnpm smoke:publish   # packages the six tarballs and installs + imports + typechecks them in a fresh npm project OUTSIDE the repo
+pnpm check:readme    # typechecks the README code examples that opt in (see below) against the built types
+pnpm api:check       # regenerates api-surface/*.d.ts from dist and fails if the public type surface drifted
+```
+
+- **`pnpm smoke:publish`** (`scripts/publish-smoke.mjs`): `pnpm pack`s every package, spins up a scratch consumer in the OS temp dir, installs the tarballs via `file:` specifiers plus each package's real peer dependencies from npm, then runtime-imports every exports subpath, typechecks usage under `moduleResolution` both `bundler` and `node16`, and runs `@arethetypeswrong/cli` on each tarball. This is the "does the published artifact actually work" check.
+- **`pnpm check:readme`** (`scripts/readme-check.mjs`): typechecks README examples against the built types.
+- **`pnpm api:check`** (`scripts/api-surface.mjs`): the committed `api-surface/*.d.ts` files are the frozen public type surface. When you change an exported type on purpose, run `pnpm api:update` and commit the regenerated baseline. Runtime export *names* are snapshotted separately by `packages/*/src/__tests__/api-surface.test.ts` (update with `pnpm test -u`).
+
+### README `check` fence convention
+
+`pnpm check:readme` only typechecks a fenced code block when its info string contains the token `check`:
+
+````md
+```ts check
+import { HitlEventSchema } from "@hitl-kit/core";
+```
+````
+
+The opt-in is explicit and never inferred. Most README blocks are partial fragments (they reference an undefined `model`, `graph`, a `@/components/...` import, etc.) and are illustrative only, so they are skipped. Annotate a block with `check` when it is meant to stand on its own and compile against the published packages — it is then compiled as an isolated module and must import or declare every identifier it uses. Only `ts` / `typescript` / `tsx` blocks are eligible; `bash` / `json` blocks are always skipped.
+
+---
+
 ## Releasing a new primitive
 
 1. Add the source file under `src/components/hitl/MyNewPrimitive.tsx`
