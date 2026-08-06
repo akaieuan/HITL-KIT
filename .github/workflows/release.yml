@@ -29,7 +29,11 @@ jobs:
         with:
           ref: ${{ github.event.inputs.tag || github.ref }}
 
+      # Version pinned to match ci.yml — the repo has no `packageManager`
+      # field, so the action cannot infer one and fails outright without this.
       - uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
       - uses: actions/setup-node@v4
         with:
