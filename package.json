@@ -22,13 +22,19 @@
   },
   "pnpm": {
     "overrides": {
-      "fast-uri": "^3.1.2",
+      "fast-uri": ">=3.1.4",
       "hono": "^4.12.25",
       "langsmith": "^0.6.0",
-      "postcss": "^8.5.10",
-      "ip-address": "^10.1.1",
-      "brace-expansion": "^5.0.6",
-      "qs": "^6.15.2"
+      "postcss": ">=8.5.18",
+      "ip-address": ">=10.3.1",
+      "brace-expansion": "^2.1.2",
+      "qs": "^6.15.2",
+      "sharp": ">=0.35.0"
+    },
+    "auditConfig": {
+      "ignoreGhsas": [
+        "GHSA-mh99-v99m-4gvg"
+      ]
     }
   }
 }

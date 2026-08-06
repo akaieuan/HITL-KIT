@@ -1,0 +1,97 @@
+name: Release
+
+# Modelled on the eval-kit workflow that has already shipped a release with
+# provenance. No tokens anywhere: GitHub Actions authenticates to npm over OIDC
+# (npm Trusted Publishing), which also means every package gets a provenance
+# attestation tying it back to this repo and commit.
+#
+# To ship: bump the versions, merge, then push a tag — `git tag v0.5.0 && git
+# push origin v0.5.0`. Pre-release tags (alpha/beta/rc) publish under the
+# `alpha` dist-tag instead of `latest`.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Git tag to check out and publish (e.g. v0.5.0). Required for manual runs."
+        required: true
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write # OIDC for npm Trusted Publishing + provenance attestations
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag || github.ref }}
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: "https://registry.npmjs.org/"
+
+      # npm 11.5.1+ has first-class OIDC trusted-publishing support; the version
+      # bundled with Node 22 is older and performs an anonymous PUT, which npm
+      # answers with a 404. This step is load-bearing — it has been dropped in a
+      # refactor once already.
+      - name: Upgrade npm for OIDC trusted publishing
+        run: npm install -g npm@latest
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: pnpm test
+
+      # The same gates CI runs on every PR. A release should not be the first
+      # time the published artifact is exercised.
+      - run: pnpm api:check
+      - run: pnpm check:readme
+      - run: pnpm smoke:publish
+
+      - id: dist_tag
+        name: Choose npm dist-tag from git tag
+        run: |
+          ref="${{ github.event.inputs.tag || github.ref_name }}"
+          if [[ "$ref" == *alpha* || "$ref" == *beta* || "$ref" == *rc* ]]; then
+            echo "tag=alpha" >> "$GITHUB_OUTPUT"
+          else
+            echo "tag=latest" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Pack with pnpm (it resolves `workspace:*` deps to concrete versions),
+      # then publish with npm, which performs the OIDC exchange. `pnpm publish`
+      # does not do that exchange and 404s anonymously.
+      - name: Pack all packages
+        run: |
+          mkdir -p /tmp/pkg
+          for dir in core react gates langgraph ai-sdk mcp; do
+            (cd "packages/$dir" && pnpm pack --pack-destination /tmp/pkg)
+          done
+          ls -la /tmp/pkg
+
+      # Dependency order: core, then its direct dependents, then the adapters
+      # that need both. Republishing an existing version is a no-op, so a
+      # partially-failed release can simply be re-run.
+      - name: Publish to npm
+        run: |
+          set -euo pipefail
+          for dir in core react gates langgraph ai-sdk mcp; do
+            name=$(node -p "require('./packages/$dir/package.json').name")
+            version=$(node -p "require('./packages/$dir/package.json').version")
+            tarball="/tmp/pkg/hitl-kit-${dir}-${version}.tgz"
+            if npm view "${name}@${version}" version >/dev/null 2>&1; then
+              echo "${name}@${version} already on npm — skipping"
+              continue
+            fi
+            echo "publishing ${name}@${version}"
+            npm publish "$tarball" \
+              --tag ${{ steps.dist_tag.outputs.tag }} \
+              --access public \
+              --provenance
+          done
