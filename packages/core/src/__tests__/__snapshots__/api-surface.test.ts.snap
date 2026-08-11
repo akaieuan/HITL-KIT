@@ -2,6 +2,7 @@
 
 exports[`@hitl-kit/core public API > exports a stable, sorted set of runtime names 1`] = `
 [
+  "AUTHORIZING_STATES",
   "AgentStatusSchema",
   "AiGenerationScaleEventSchema",
   "ApprovalStateSchema",
@@ -15,6 +16,9 @@ exports[`@hitl-kit/core public API > exports a stable, sorted set of runtime nam
   "DiffHunkSchema",
   "DiffResultEventSchema",
   "EditablePlanEventSchema",
+  "EvidenceItemSchema",
+  "EvidenceLocatorSchema",
+  "EvidencePointerEventSchema",
   "HITL_EVENT_KINDS",
   "HitlCardEventSchema",
   "HitlEventSchema",
@@ -30,6 +34,7 @@ exports[`@hitl-kit/core public API > exports a stable, sorted set of runtime nam
   "ToolCallSignalsSchema",
   "TraceStepSchema",
   "WritingAgentEventSchema",
+  "isAuthorized",
   "z",
 ]
 `;

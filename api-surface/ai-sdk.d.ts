@@ -229,7 +229,7 @@ declare function approveRejectTool(options?: {
 }, {
     kind: "approval.binary";
     label: string;
-    state: "pending" | "approved" | "rejected";
+    state: "pending" | "approved" | "rejected" | "abstained";
     id?: string | undefined;
     meta?: string | undefined;
     accent?: string | undefined;
@@ -527,7 +527,7 @@ declare const allHitlTools: {
     }, {
         kind: "approval.binary";
         label: string;
-        state: "pending" | "approved" | "rejected";
+        state: "pending" | "approved" | "rejected" | "abstained";
         id?: string | undefined;
         meta?: string | undefined;
         accent?: string | undefined;

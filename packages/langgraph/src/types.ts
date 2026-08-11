@@ -26,7 +26,9 @@ export interface HitlInterruptPayload<E extends HitlEvent = HitlEvent> {
  *
  * Primitives typically return one of:
  *   - `{ approved: true }` / `{ approved: false }`
- *   - `{ state: "approved" | "rejected" }` for ApproveRejectEvent
+ *   - `{ state: "approved" | "rejected" | "abstained" }` for ApproveRejectEvent
+ *     (`abstained` means the reviewer could not determine it — NOT a denial;
+ *     the gated action does not proceed, but the case is not resolved either)
  *   - `{ answers: [...] }` for QAFlowEvent
  *   - arbitrary payloads for custom primitives
  */

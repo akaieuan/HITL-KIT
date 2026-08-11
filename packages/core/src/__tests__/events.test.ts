@@ -136,6 +136,19 @@ const FIXTURES: Record<HitlEventKind, HitlEvent> = {
     args: { to: "user@example.com", subject: "hi" },
     signals: { confidence: 0.92, costUsd: 0.001 },
   },
+  "evidence.pointer": {
+    kind: "evidence.pointer",
+    claim: "The contract caps liability at 12 months of fees.",
+    items: [
+      {
+        sourceId: "msa-2024",
+        sourceLabel: "Master Services Agreement",
+        locator: { type: "span", start: 4120, end: 4260 },
+        excerpt: "…liability shall not exceed the fees paid in the twelve (12) months…",
+      },
+    ],
+    notAssessed: ["Amendment 3 (unparsed)"],
+  },
 };
 
 describe("HitlEventSchema", () => {
@@ -150,7 +163,10 @@ describe("HitlEventSchema", () => {
     for (const [k, n] of Object.entries(counts)) {
       expect(n, `kind ${k} should appear exactly once in HITL_EVENT_KINDS`).toBe(1);
     }
-    expect(HITL_EVENT_KINDS.length).toBe(15);
+    // Bump deliberately when a primitive is added — the count exists so a
+    // new event kind is a conscious protocol change, not an accident.
+    // 15 -> 16: evidence.pointer (authorization primitives P1).
+    expect(HITL_EVENT_KINDS.length).toBe(16);
   });
 
   it("parses one valid example per kind (round-trip net)", () => {
