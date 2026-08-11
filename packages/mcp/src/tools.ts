@@ -17,6 +17,7 @@ import {
   EditablePlanEventSchema,
   ToolCallPreviewEventSchema,
   type HitlEvent,
+  EvidencePointerEventSchema,
 } from "@hitl-kit/core";
 
 /**
@@ -151,6 +152,12 @@ export const HITL_TOOLS: HitlTool[] = [
     "tool.call",
     "Preview a tool call (name, args, optional rationale and signals) so the human can approve or reject before execution. Use for destructive or high-stakes tool calls.",
     ToolCallPreviewEventSchema,
+  ),
+  defineTool(
+    "hitl_evidence_pointer",
+    "evidence.pointer",
+    "Point at WHERE a claim is grounded — a character span, a normalised bounding box, or a time segment in a named source — so the reviewer's attention lands on the disputed thing rather than the whole document. Record sources consulted but unused in notAssessed, so absence of evidence stays visible.",
+    EvidencePointerEventSchema,
   ),
 ];
 

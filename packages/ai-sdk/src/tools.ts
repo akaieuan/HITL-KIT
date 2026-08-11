@@ -16,6 +16,7 @@ import {
   CitationResultEventSchema,
   EditablePlanEventSchema,
   ToolCallPreviewEventSchema,
+  EvidencePointerEventSchema,
   type HitlCardEvent,
   type SubagentStatusEvent,
   type MiniTraceEvent,
@@ -31,6 +32,7 @@ import {
   type CitationResultEvent,
   type EditablePlanEvent,
   type ToolCallPreviewEvent,
+  type EvidencePointerEvent,
 } from "@hitl-kit/core";
 
 /**
@@ -425,6 +427,51 @@ export function toolCallPreviewTool(options: { description?: string } = {}) {
   });
 }
 
+/* ─── 16. Evidence Pointer ──────────────────────────────────────────────── */
+
+export function evidencePointerTool(options: { description?: string } = {}) {
+  return tool({
+    description:
+      options.description ??
+      "Point at WHERE a claim is grounded — a character span, a normalised bounding box, or a time segment in a named source — so the reviewer's attention lands on the disputed thing instead of the whole document. Also record sources you consulted but drew nothing from, so absence of evidence is visible rather than read as safety.",
+    inputSchema: z.object({
+      claim: z.string(),
+      items: z.array(
+        z.object({
+          sourceId: z.string(),
+          sourceLabel: z.string(),
+          locator: z.discriminatedUnion("type", [
+            z.object({
+              type: z.literal("span"),
+              start: z.number().int().nonnegative(),
+              end: z.number().int().nonnegative(),
+            }),
+            z.object({
+              type: z.literal("bbox"),
+              x: z.number().min(0).max(1),
+              y: z.number().min(0).max(1),
+              width: z.number().min(0).max(1),
+              height: z.number().min(0).max(1),
+              page: z.number().int().positive().optional(),
+            }),
+            z.object({
+              type: z.literal("segment"),
+              startSec: z.number().nonnegative(),
+              endSec: z.number().nonnegative(),
+            }),
+            z.object({ type: z.literal("whole") }),
+          ]),
+          excerpt: z.string().optional(),
+          url: z.string().optional(),
+        }),
+      ),
+      notAssessed: z.array(z.string()).optional(),
+    }),
+    execute: async (input): Promise<EvidencePointerEvent> =>
+      EvidencePointerEventSchema.parse({ kind: "evidence.pointer", ...input }),
+  });
+}
+
 /**
  * Convenience bundle containing every HITL Kit tool. Spread into
  * `tools` when you want the full set available to the agent. Narrow
@@ -446,6 +493,7 @@ export const allHitlTools = {
   showCitation: citationResultTool(),
   showEditablePlan: editablePlanTool(),
   previewToolCall: toolCallPreviewTool(),
+  pointAtEvidence: evidencePointerTool(),
 };
 
 // Suppress unused-export linting for the shared helper pattern.
