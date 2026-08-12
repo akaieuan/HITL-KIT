@@ -41,8 +41,39 @@ export const AgentStatusSchema = z.enum([
 ]);
 export type AgentStatus = z.infer<typeof AgentStatusSchema>;
 
-export const ApprovalStateSchema = z.enum(["pending", "approved", "rejected"]);
+/**
+ * The outcome of a human decision.
+ *
+ * `abstained` is deliberately distinct from `rejected`. "I cannot determine
+ * this" is not "no" — it is a reviewer declining to convert an unresolved
+ * question into an authorization, and it is the honest answer whenever the
+ * evidence does not support either call. Collapsing it into `rejected` throws
+ * away the one signal that says the standard itself was unclear, and makes a
+ * queue of ambiguous cases look like a queue of denials.
+ *
+ * Consumers that exhaustively switch on this union will need a branch for it;
+ * that is intentional, and the reason this is a minor rather than a patch.
+ */
+export const ApprovalStateSchema = z.enum([
+  "pending",
+  "approved",
+  "rejected",
+  "abstained",
+]);
 export type ApprovalState = z.infer<typeof ApprovalStateSchema>;
+
+/**
+ * States that authorize the gated action to proceed.
+ *
+ * Exported so callers never hand-roll `state === "approved"` and silently
+ * disagree about whether an abstention permits action. It does not.
+ */
+export const AUTHORIZING_STATES: readonly ApprovalState[] = ["approved"];
+
+/** True only when the human's decision permits the gated action. */
+export function isAuthorized(state: ApprovalState): boolean {
+  return AUTHORIZING_STATES.includes(state);
+}
 
 /* ─── 01. Interrupt Card ────────────────────────────────────────────────── */
 
@@ -356,6 +387,78 @@ export type ToolCallPreviewEvent = z.infer<typeof ToolCallPreviewEventSchema>;
 
 /* ─── The discriminated union ───────────────────────────────────────────── */
 
+
+/* ─── 16. Evidence Pointer ──────────────────────────────────────────────── */
+
+/**
+ * WHERE a claim is grounded, not merely THAT it is.
+ *
+ * A gate is only affordable when the checkable half of the standard has
+ * already been checked. If the evidence is "this 40-page document", the
+ * reviewer can only trust the agent or re-derive the answer themselves, and
+ * both are failures of the gate: the first is a rubber stamp, the second
+ * means the automation saved nothing. A pointer has to LOCATE the disputed
+ * thing.
+ *
+ * Locators are a discriminated union rather than a loose {start, end} because
+ * the units differ per modality and silently mixing them is how a highlight
+ * lands on the wrong sentence. Ranges are half-open [start, end), matching
+ * tag-kit's scope convention so the two families agree.
+ */
+export const EvidenceLocatorSchema = z.discriminatedUnion("type", [
+  /** Character offsets into a named text source. */
+  z.object({
+    type: z.literal("span"),
+    start: z.number().int().nonnegative(),
+    end: z.number().int().nonnegative(),
+  }),
+  /** Normalised 0–1 box on a page or image, so it survives rescaling. */
+  z.object({
+    type: z.literal("bbox"),
+    x: z.number().min(0).max(1),
+    y: z.number().min(0).max(1),
+    width: z.number().min(0).max(1),
+    height: z.number().min(0).max(1),
+    page: z.number().int().positive().optional(),
+  }),
+  /** Seconds into an audio or video asset. */
+  z.object({
+    type: z.literal("segment"),
+    startSec: z.number().nonnegative(),
+    endSec: z.number().nonnegative(),
+  }),
+  /** A whole named source, when nothing narrower is honest. */
+  z.object({ type: z.literal("whole") }),
+]);
+export type EvidenceLocator = z.infer<typeof EvidenceLocatorSchema>;
+
+export const EvidenceItemSchema = z.object({
+  /** Stable id for the source this points into (document, asset, message). */
+  sourceId: z.string().max(LABEL_MAX),
+  /** Human-readable source name, shown when the pointer is rendered. */
+  sourceLabel: z.string().max(TITLE_MAX),
+  locator: EvidenceLocatorSchema,
+  /** The quoted or described excerpt the locator resolves to. */
+  excerpt: z.string().max(BODY_MAX).optional(),
+  url: SafeUrlSchema.optional(),
+});
+export type EvidenceItem = z.infer<typeof EvidenceItemSchema>;
+
+export const EvidencePointerEventSchema = z.object({
+  kind: z.literal("evidence.pointer"),
+  id: z.string().max(LABEL_MAX).optional(),
+  /** The claim these pointers support or dispute. */
+  claim: z.string().max(BODY_MAX),
+  items: z.array(EvidenceItemSchema).max(50),
+  /**
+   * Sources the agent consulted but drew nothing from. Recording this is the
+   * difference between "no evidence against" and "not looked for" — absence
+   * has to be visible or the reviewer reads silence as safety.
+   */
+  notAssessed: z.array(z.string().max(TITLE_MAX)).max(50).default([]),
+});
+export type EvidencePointerEvent = z.infer<typeof EvidencePointerEventSchema>;
+
 /**
  * Every HITL event an agent can emit. Use this schema to validate
  * streaming tool-call output from a framework adapter before handing
@@ -377,6 +480,7 @@ export const HitlEventSchema = z.discriminatedUnion("kind", [
   CitationResultEventSchema,
   EditablePlanEventSchema,
   ToolCallPreviewEventSchema,
+  EvidencePointerEventSchema,
 ]);
 
 export type HitlEvent = z.infer<typeof HitlEventSchema>;
@@ -403,4 +507,5 @@ export const HITL_EVENT_KINDS = [
   "result.citation",
   "plan.editable",
   "tool.call",
+  "evidence.pointer",
 ] as const satisfies readonly HitlEventKind[];

@@ -229,7 +229,7 @@ declare function approveRejectTool(options?: {
 }, {
     kind: "approval.binary";
     label: string;
-    state: "pending" | "approved" | "rejected";
+    state: "pending" | "approved" | "rejected" | "abstained";
     id?: string | undefined;
     meta?: string | undefined;
     accent?: string | undefined;
@@ -341,6 +341,65 @@ declare function toolCallPreviewTool(options?: {
         scope?: string[] | undefined;
     } | undefined;
     approveLabel?: string | undefined;
+}>;
+declare function evidencePointerTool(options?: {
+    description?: string;
+}): ai.Tool<{
+    items: {
+        sourceId: string;
+        sourceLabel: string;
+        locator: {
+            type: "span";
+            start: number;
+            end: number;
+        } | {
+            type: "bbox";
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+            page?: number | undefined;
+        } | {
+            type: "segment";
+            startSec: number;
+            endSec: number;
+        } | {
+            type: "whole";
+        };
+        url?: string | undefined;
+        excerpt?: string | undefined;
+    }[];
+    claim: string;
+    notAssessed?: string[] | undefined;
+}, {
+    kind: "evidence.pointer";
+    items: {
+        sourceId: string;
+        sourceLabel: string;
+        locator: {
+            type: "span";
+            start: number;
+            end: number;
+        } | {
+            type: "bbox";
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+            page?: number | undefined;
+        } | {
+            type: "segment";
+            startSec: number;
+            endSec: number;
+        } | {
+            type: "whole";
+        };
+        url?: string | undefined;
+        excerpt?: string | undefined;
+    }[];
+    claim: string;
+    notAssessed: string[];
+    id?: string | undefined;
 }>;
 /**
  * Convenience bundle containing every HITL Kit tool. Spread into
@@ -527,7 +586,7 @@ declare const allHitlTools: {
     }, {
         kind: "approval.binary";
         label: string;
-        state: "pending" | "approved" | "rejected";
+        state: "pending" | "approved" | "rejected" | "abstained";
         id?: string | undefined;
         meta?: string | undefined;
         accent?: string | undefined;
@@ -632,6 +691,63 @@ declare const allHitlTools: {
         } | undefined;
         approveLabel?: string | undefined;
     }>;
+    pointAtEvidence: ai.Tool<{
+        items: {
+            sourceId: string;
+            sourceLabel: string;
+            locator: {
+                type: "span";
+                start: number;
+                end: number;
+            } | {
+                type: "bbox";
+                x: number;
+                y: number;
+                width: number;
+                height: number;
+                page?: number | undefined;
+            } | {
+                type: "segment";
+                startSec: number;
+                endSec: number;
+            } | {
+                type: "whole";
+            };
+            url?: string | undefined;
+            excerpt?: string | undefined;
+        }[];
+        claim: string;
+        notAssessed?: string[] | undefined;
+    }, {
+        kind: "evidence.pointer";
+        items: {
+            sourceId: string;
+            sourceLabel: string;
+            locator: {
+                type: "span";
+                start: number;
+                end: number;
+            } | {
+                type: "bbox";
+                x: number;
+                y: number;
+                width: number;
+                height: number;
+                page?: number | undefined;
+            } | {
+                type: "segment";
+                startSec: number;
+                endSec: number;
+            } | {
+                type: "whole";
+            };
+            url?: string | undefined;
+            excerpt?: string | undefined;
+        }[];
+        claim: string;
+        notAssessed: string[];
+        id?: string | undefined;
+    }>;
 };
 
 /**
@@ -703,4 +819,4 @@ declare class GateDeniedError extends Error {
  */
 declare function withGates<T extends AiSdkTool>(tool: T, gates: Gate[], opts?: WithGatesOptions): T;
 
-export { GateDeniedError, type HitlCardToolOptions, type HitlToolResult, type WithGatesOptions, CommonFields as _CommonFields, aiGenerationScaleTool, allHitlTools, approveRejectTool, batchQueueTool, citationResultTool, contextChipsTool, diffResultTool, editablePlanTool, hitlCardTool, isHitlToolResult, miniTraceTool, qaFlowTool, researchAgentTool, searchResultTool, subagentStatusTool, toolCallPreviewTool, withGates, writingAgentTool };
+export { GateDeniedError, type HitlCardToolOptions, type HitlToolResult, type WithGatesOptions, CommonFields as _CommonFields, aiGenerationScaleTool, allHitlTools, approveRejectTool, batchQueueTool, citationResultTool, contextChipsTool, diffResultTool, editablePlanTool, evidencePointerTool, hitlCardTool, isHitlToolResult, miniTraceTool, qaFlowTool, researchAgentTool, searchResultTool, subagentStatusTool, toolCallPreviewTool, withGates, writingAgentTool };

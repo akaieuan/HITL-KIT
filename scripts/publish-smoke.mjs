@@ -153,7 +153,7 @@ const RUNTIME = {
   core: `import { HitlEventSchema, HITL_EVENT_KINDS, z } from "@hitl-kit/core";
 const r = HitlEventSchema.safeParse(${CARD});
 if (!r.success) throw new Error("core: valid event failed to parse");
-if (HITL_EVENT_KINDS.length !== 15) throw new Error("core: expected 15 kinds, got " + HITL_EVENT_KINDS.length);
+if (HITL_EVENT_KINDS.length !== 16) throw new Error("core: expected 16 kinds, got " + HITL_EVENT_KINDS.length);
 if (typeof z.object !== "function") throw new Error("core: z re-export broken");`,
 
   react: `import { createElement } from "react";
@@ -180,13 +180,13 @@ if (payload.event.kind !== "hitl.card") throw new Error("langgraph: wrong event 
   "ai-sdk": `import { hitlCardTool, allHitlTools, isHitlToolResult } from "@hitl-kit/ai-sdk";
 const t = hitlCardTool();
 if (typeof t !== "object" || typeof t.execute !== "function") throw new Error("ai-sdk: hitlCardTool malformed");
-if (Object.keys(allHitlTools).length !== 15) throw new Error("ai-sdk: expected 15 tools, got " + Object.keys(allHitlTools).length);
+if (Object.keys(allHitlTools).length !== 16) throw new Error("ai-sdk: expected 16 tools, got " + Object.keys(allHitlTools).length);
 if (isHitlToolResult(null) !== false) throw new Error("ai-sdk: isHitlToolResult(null) should be false");`,
 
   mcp: `import { createHitlKitServer, HITL_TOOLS, TOOL_BY_NAME } from "@hitl-kit/mcp";
 const server = createHitlKitServer();
 if (!server) throw new Error("mcp: createHitlKitServer returned nothing");
-if (HITL_TOOLS.length !== 15) throw new Error("mcp: expected 15 tools, got " + HITL_TOOLS.length);
+if (HITL_TOOLS.length !== 16) throw new Error("mcp: expected 16 tools, got " + HITL_TOOLS.length);
 if (typeof TOOL_BY_NAME !== "object") throw new Error("mcp: TOOL_BY_NAME not an object");`,
 };
 

@@ -12,6 +12,7 @@ exports[`@hitl-kit/ai-sdk public API > exports a stable, sorted set of runtime n
   "contextChipsTool",
   "diffResultTool",
   "editablePlanTool",
+  "evidencePointerTool",
   "hitlCardTool",
   "isHitlToolResult",
   "miniTraceTool",

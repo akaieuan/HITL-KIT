@@ -18,8 +18,30 @@ export { z } from 'zod';
 declare const SafeUrlSchema: z.ZodEffects<z.ZodString, string, string>;
 declare const AgentStatusSchema: z.ZodEnum<["idle", "running", "completed", "error", "skipped", "cancelled"]>;
 type AgentStatus = z.infer<typeof AgentStatusSchema>;
-declare const ApprovalStateSchema: z.ZodEnum<["pending", "approved", "rejected"]>;
+/**
+ * The outcome of a human decision.
+ *
+ * `abstained` is deliberately distinct from `rejected`. "I cannot determine
+ * this" is not "no" — it is a reviewer declining to convert an unresolved
+ * question into an authorization, and it is the honest answer whenever the
+ * evidence does not support either call. Collapsing it into `rejected` throws
+ * away the one signal that says the standard itself was unclear, and makes a
+ * queue of ambiguous cases look like a queue of denials.
+ *
+ * Consumers that exhaustively switch on this union will need a branch for it;
+ * that is intentional, and the reason this is a minor rather than a patch.
+ */
+declare const ApprovalStateSchema: z.ZodEnum<["pending", "approved", "rejected", "abstained"]>;
 type ApprovalState = z.infer<typeof ApprovalStateSchema>;
+/**
+ * States that authorize the gated action to proceed.
+ *
+ * Exported so callers never hand-roll `state === "approved"` and silently
+ * disagree about whether an abstention permits action. It does not.
+ */
+declare const AUTHORIZING_STATES: readonly ApprovalState[];
+/** True only when the human's decision permits the gated action. */
+declare function isAuthorized(state: ApprovalState): boolean;
 declare const HitlCardEventSchema: z.ZodObject<{
     kind: z.ZodLiteral<"hitl.card">;
     id: z.ZodOptional<z.ZodString>;
@@ -465,18 +487,18 @@ declare const ApproveRejectEventSchema: z.ZodObject<{
     label: z.ZodString;
     meta: z.ZodOptional<z.ZodString>;
     accent: z.ZodOptional<z.ZodString>;
-    state: z.ZodEnum<["pending", "approved", "rejected"]>;
+    state: z.ZodEnum<["pending", "approved", "rejected", "abstained"]>;
 }, "strip", z.ZodTypeAny, {
     kind: "approval.binary";
     label: string;
-    state: "pending" | "approved" | "rejected";
+    state: "pending" | "approved" | "rejected" | "abstained";
     id?: string | undefined;
     meta?: string | undefined;
     accent?: string | undefined;
 }, {
     kind: "approval.binary";
     label: string;
-    state: "pending" | "approved" | "rejected";
+    state: "pending" | "approved" | "rejected" | "abstained";
     id?: string | undefined;
     meta?: string | undefined;
     accent?: string | undefined;
@@ -759,6 +781,360 @@ declare const ToolCallPreviewEventSchema: z.ZodObject<{
     approveLabel?: string | undefined;
 }>;
 type ToolCallPreviewEvent = z.infer<typeof ToolCallPreviewEventSchema>;
+/**
+ * WHERE a claim is grounded, not merely THAT it is.
+ *
+ * A gate is only affordable when the checkable half of the standard has
+ * already been checked. If the evidence is "this 40-page document", the
+ * reviewer can only trust the agent or re-derive the answer themselves, and
+ * both are failures of the gate: the first is a rubber stamp, the second
+ * means the automation saved nothing. A pointer has to LOCATE the disputed
+ * thing.
+ *
+ * Locators are a discriminated union rather than a loose {start, end} because
+ * the units differ per modality and silently mixing them is how a highlight
+ * lands on the wrong sentence. Ranges are half-open [start, end), matching
+ * tag-kit's scope convention so the two families agree.
+ */
+declare const EvidenceLocatorSchema: z.ZodDiscriminatedUnion<"type", [z.ZodObject<{
+    type: z.ZodLiteral<"span">;
+    start: z.ZodNumber;
+    end: z.ZodNumber;
+}, "strip", z.ZodTypeAny, {
+    type: "span";
+    start: number;
+    end: number;
+}, {
+    type: "span";
+    start: number;
+    end: number;
+}>, z.ZodObject<{
+    type: z.ZodLiteral<"bbox">;
+    x: z.ZodNumber;
+    y: z.ZodNumber;
+    width: z.ZodNumber;
+    height: z.ZodNumber;
+    page: z.ZodOptional<z.ZodNumber>;
+}, "strip", z.ZodTypeAny, {
+    type: "bbox";
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    page?: number | undefined;
+}, {
+    type: "bbox";
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    page?: number | undefined;
+}>, z.ZodObject<{
+    type: z.ZodLiteral<"segment">;
+    startSec: z.ZodNumber;
+    endSec: z.ZodNumber;
+}, "strip", z.ZodTypeAny, {
+    type: "segment";
+    startSec: number;
+    endSec: number;
+}, {
+    type: "segment";
+    startSec: number;
+    endSec: number;
+}>, z.ZodObject<{
+    type: z.ZodLiteral<"whole">;
+}, "strip", z.ZodTypeAny, {
+    type: "whole";
+}, {
+    type: "whole";
+}>]>;
+type EvidenceLocator = z.infer<typeof EvidenceLocatorSchema>;
+declare const EvidenceItemSchema: z.ZodObject<{
+    /** Stable id for the source this points into (document, asset, message). */
+    sourceId: z.ZodString;
+    /** Human-readable source name, shown when the pointer is rendered. */
+    sourceLabel: z.ZodString;
+    locator: z.ZodDiscriminatedUnion<"type", [z.ZodObject<{
+        type: z.ZodLiteral<"span">;
+        start: z.ZodNumber;
+        end: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        type: "span";
+        start: number;
+        end: number;
+    }, {
+        type: "span";
+        start: number;
+        end: number;
+    }>, z.ZodObject<{
+        type: z.ZodLiteral<"bbox">;
+        x: z.ZodNumber;
+        y: z.ZodNumber;
+        width: z.ZodNumber;
+        height: z.ZodNumber;
+        page: z.ZodOptional<z.ZodNumber>;
+    }, "strip", z.ZodTypeAny, {
+        type: "bbox";
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        page?: number | undefined;
+    }, {
+        type: "bbox";
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        page?: number | undefined;
+    }>, z.ZodObject<{
+        type: z.ZodLiteral<"segment">;
+        startSec: z.ZodNumber;
+        endSec: z.ZodNumber;
+    }, "strip", z.ZodTypeAny, {
+        type: "segment";
+        startSec: number;
+        endSec: number;
+    }, {
+        type: "segment";
+        startSec: number;
+        endSec: number;
+    }>, z.ZodObject<{
+        type: z.ZodLiteral<"whole">;
+    }, "strip", z.ZodTypeAny, {
+        type: "whole";
+    }, {
+        type: "whole";
+    }>]>;
+    /** The quoted or described excerpt the locator resolves to. */
+    excerpt: z.ZodOptional<z.ZodString>;
+    url: z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>;
+}, "strip", z.ZodTypeAny, {
+    sourceId: string;
+    sourceLabel: string;
+    locator: {
+        type: "span";
+        start: number;
+        end: number;
+    } | {
+        type: "bbox";
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        page?: number | undefined;
+    } | {
+        type: "segment";
+        startSec: number;
+        endSec: number;
+    } | {
+        type: "whole";
+    };
+    url?: string | undefined;
+    excerpt?: string | undefined;
+}, {
+    sourceId: string;
+    sourceLabel: string;
+    locator: {
+        type: "span";
+        start: number;
+        end: number;
+    } | {
+        type: "bbox";
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+        page?: number | undefined;
+    } | {
+        type: "segment";
+        startSec: number;
+        endSec: number;
+    } | {
+        type: "whole";
+    };
+    url?: string | undefined;
+    excerpt?: string | undefined;
+}>;
+type EvidenceItem = z.infer<typeof EvidenceItemSchema>;
+declare const EvidencePointerEventSchema: z.ZodObject<{
+    kind: z.ZodLiteral<"evidence.pointer">;
+    id: z.ZodOptional<z.ZodString>;
+    /** The claim these pointers support or dispute. */
+    claim: z.ZodString;
+    items: z.ZodArray<z.ZodObject<{
+        /** Stable id for the source this points into (document, asset, message). */
+        sourceId: z.ZodString;
+        /** Human-readable source name, shown when the pointer is rendered. */
+        sourceLabel: z.ZodString;
+        locator: z.ZodDiscriminatedUnion<"type", [z.ZodObject<{
+            type: z.ZodLiteral<"span">;
+            start: z.ZodNumber;
+            end: z.ZodNumber;
+        }, "strip", z.ZodTypeAny, {
+            type: "span";
+            start: number;
+            end: number;
+        }, {
+            type: "span";
+            start: number;
+            end: number;
+        }>, z.ZodObject<{
+            type: z.ZodLiteral<"bbox">;
+            x: z.ZodNumber;
+            y: z.ZodNumber;
+            width: z.ZodNumber;
+            height: z.ZodNumber;
+            page: z.ZodOptional<z.ZodNumber>;
+        }, "strip", z.ZodTypeAny, {
+            type: "bbox";
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+            page?: number | undefined;
+        }, {
+            type: "bbox";
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+            page?: number | undefined;
+        }>, z.ZodObject<{
+            type: z.ZodLiteral<"segment">;
+            startSec: z.ZodNumber;
+            endSec: z.ZodNumber;
+        }, "strip", z.ZodTypeAny, {
+            type: "segment";
+            startSec: number;
+            endSec: number;
+        }, {
+            type: "segment";
+            startSec: number;
+            endSec: number;
+        }>, z.ZodObject<{
+            type: z.ZodLiteral<"whole">;
+        }, "strip", z.ZodTypeAny, {
+            type: "whole";
+        }, {
+            type: "whole";
+        }>]>;
+        /** The quoted or described excerpt the locator resolves to. */
+        excerpt: z.ZodOptional<z.ZodString>;
+        url: z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>;
+    }, "strip", z.ZodTypeAny, {
+        sourceId: string;
+        sourceLabel: string;
+        locator: {
+            type: "span";
+            start: number;
+            end: number;
+        } | {
+            type: "bbox";
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+            page?: number | undefined;
+        } | {
+            type: "segment";
+            startSec: number;
+            endSec: number;
+        } | {
+            type: "whole";
+        };
+        url?: string | undefined;
+        excerpt?: string | undefined;
+    }, {
+        sourceId: string;
+        sourceLabel: string;
+        locator: {
+            type: "span";
+            start: number;
+            end: number;
+        } | {
+            type: "bbox";
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+            page?: number | undefined;
+        } | {
+            type: "segment";
+            startSec: number;
+            endSec: number;
+        } | {
+            type: "whole";
+        };
+        url?: string | undefined;
+        excerpt?: string | undefined;
+    }>, "many">;
+    /**
+     * Sources the agent consulted but drew nothing from. Recording this is the
+     * difference between "no evidence against" and "not looked for" — absence
+     * has to be visible or the reviewer reads silence as safety.
+     */
+    notAssessed: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
+}, "strip", z.ZodTypeAny, {
+    kind: "evidence.pointer";
+    items: {
+        sourceId: string;
+        sourceLabel: string;
+        locator: {
+            type: "span";
+            start: number;
+            end: number;
+        } | {
+            type: "bbox";
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+            page?: number | undefined;
+        } | {
+            type: "segment";
+            startSec: number;
+            endSec: number;
+        } | {
+            type: "whole";
+        };
+        url?: string | undefined;
+        excerpt?: string | undefined;
+    }[];
+    claim: string;
+    notAssessed: string[];
+    id?: string | undefined;
+}, {
+    kind: "evidence.pointer";
+    items: {
+        sourceId: string;
+        sourceLabel: string;
+        locator: {
+            type: "span";
+            start: number;
+            end: number;
+        } | {
+            type: "bbox";
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+            page?: number | undefined;
+        } | {
+            type: "segment";
+            startSec: number;
+            endSec: number;
+        } | {
+            type: "whole";
+        };
+        url?: string | undefined;
+        excerpt?: string | undefined;
+    }[];
+    claim: string;
+    id?: string | undefined;
+    notAssessed?: string[] | undefined;
+}>;
+type EvidencePointerEvent = z.infer<typeof EvidencePointerEventSchema>;
 /**
  * Every HITL event an agent can emit. Use this schema to validate
  * streaming tool-call output from a framework adapter before handing
@@ -1100,18 +1476,18 @@ declare const HitlEventSchema: z.ZodDiscriminatedUnion<"kind", [z.ZodObject<{
     label: z.ZodString;
     meta: z.ZodOptional<z.ZodString>;
     accent: z.ZodOptional<z.ZodString>;
-    state: z.ZodEnum<["pending", "approved", "rejected"]>;
+    state: z.ZodEnum<["pending", "approved", "rejected", "abstained"]>;
 }, "strip", z.ZodTypeAny, {
     kind: "approval.binary";
     label: string;
-    state: "pending" | "approved" | "rejected";
+    state: "pending" | "approved" | "rejected" | "abstained";
     id?: string | undefined;
     meta?: string | undefined;
     accent?: string | undefined;
 }, {
     kind: "approval.binary";
     label: string;
-    state: "pending" | "approved" | "rejected";
+    state: "pending" | "approved" | "rejected" | "abstained";
     id?: string | undefined;
     meta?: string | undefined;
     accent?: string | undefined;
@@ -1313,6 +1689,182 @@ declare const HitlEventSchema: z.ZodDiscriminatedUnion<"kind", [z.ZodObject<{
         scope?: string[] | undefined;
     } | undefined;
     approveLabel?: string | undefined;
+}>, z.ZodObject<{
+    kind: z.ZodLiteral<"evidence.pointer">;
+    id: z.ZodOptional<z.ZodString>;
+    /** The claim these pointers support or dispute. */
+    claim: z.ZodString;
+    items: z.ZodArray<z.ZodObject<{
+        /** Stable id for the source this points into (document, asset, message). */
+        sourceId: z.ZodString;
+        /** Human-readable source name, shown when the pointer is rendered. */
+        sourceLabel: z.ZodString;
+        locator: z.ZodDiscriminatedUnion<"type", [z.ZodObject<{
+            type: z.ZodLiteral<"span">;
+            start: z.ZodNumber;
+            end: z.ZodNumber;
+        }, "strip", z.ZodTypeAny, {
+            type: "span";
+            start: number;
+            end: number;
+        }, {
+            type: "span";
+            start: number;
+            end: number;
+        }>, z.ZodObject<{
+            type: z.ZodLiteral<"bbox">;
+            x: z.ZodNumber;
+            y: z.ZodNumber;
+            width: z.ZodNumber;
+            height: z.ZodNumber;
+            page: z.ZodOptional<z.ZodNumber>;
+        }, "strip", z.ZodTypeAny, {
+            type: "bbox";
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+            page?: number | undefined;
+        }, {
+            type: "bbox";
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+            page?: number | undefined;
+        }>, z.ZodObject<{
+            type: z.ZodLiteral<"segment">;
+            startSec: z.ZodNumber;
+            endSec: z.ZodNumber;
+        }, "strip", z.ZodTypeAny, {
+            type: "segment";
+            startSec: number;
+            endSec: number;
+        }, {
+            type: "segment";
+            startSec: number;
+            endSec: number;
+        }>, z.ZodObject<{
+            type: z.ZodLiteral<"whole">;
+        }, "strip", z.ZodTypeAny, {
+            type: "whole";
+        }, {
+            type: "whole";
+        }>]>;
+        /** The quoted or described excerpt the locator resolves to. */
+        excerpt: z.ZodOptional<z.ZodString>;
+        url: z.ZodOptional<z.ZodEffects<z.ZodString, string, string>>;
+    }, "strip", z.ZodTypeAny, {
+        sourceId: string;
+        sourceLabel: string;
+        locator: {
+            type: "span";
+            start: number;
+            end: number;
+        } | {
+            type: "bbox";
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+            page?: number | undefined;
+        } | {
+            type: "segment";
+            startSec: number;
+            endSec: number;
+        } | {
+            type: "whole";
+        };
+        url?: string | undefined;
+        excerpt?: string | undefined;
+    }, {
+        sourceId: string;
+        sourceLabel: string;
+        locator: {
+            type: "span";
+            start: number;
+            end: number;
+        } | {
+            type: "bbox";
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+            page?: number | undefined;
+        } | {
+            type: "segment";
+            startSec: number;
+            endSec: number;
+        } | {
+            type: "whole";
+        };
+        url?: string | undefined;
+        excerpt?: string | undefined;
+    }>, "many">;
+    /**
+     * Sources the agent consulted but drew nothing from. Recording this is the
+     * difference between "no evidence against" and "not looked for" — absence
+     * has to be visible or the reviewer reads silence as safety.
+     */
+    notAssessed: z.ZodDefault<z.ZodArray<z.ZodString, "many">>;
+}, "strip", z.ZodTypeAny, {
+    kind: "evidence.pointer";
+    items: {
+        sourceId: string;
+        sourceLabel: string;
+        locator: {
+            type: "span";
+            start: number;
+            end: number;
+        } | {
+            type: "bbox";
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+            page?: number | undefined;
+        } | {
+            type: "segment";
+            startSec: number;
+            endSec: number;
+        } | {
+            type: "whole";
+        };
+        url?: string | undefined;
+        excerpt?: string | undefined;
+    }[];
+    claim: string;
+    notAssessed: string[];
+    id?: string | undefined;
+}, {
+    kind: "evidence.pointer";
+    items: {
+        sourceId: string;
+        sourceLabel: string;
+        locator: {
+            type: "span";
+            start: number;
+            end: number;
+        } | {
+            type: "bbox";
+            x: number;
+            y: number;
+            width: number;
+            height: number;
+            page?: number | undefined;
+        } | {
+            type: "segment";
+            startSec: number;
+            endSec: number;
+        } | {
+            type: "whole";
+        };
+        url?: string | undefined;
+        excerpt?: string | undefined;
+    }[];
+    claim: string;
+    id?: string | undefined;
+    notAssessed?: string[] | undefined;
 }>]>;
 type HitlEvent = z.infer<typeof HitlEventSchema>;
 /**
@@ -1320,6 +1872,6 @@ type HitlEvent = z.infer<typeof HitlEventSchema>;
  * typing registry objects and exhaustive switch statements.
  */
 type HitlEventKind = HitlEvent["kind"];
-declare const HITL_EVENT_KINDS: readonly ["hitl.card", "subagent.status", "trace.mini", "scale.ai_generation", "chips.context", "qa.flow", "agent.writing", "agent.research", "batch.queue", "result.search", "approval.binary", "result.diff", "result.citation", "plan.editable", "tool.call"];
+declare const HITL_EVENT_KINDS: readonly ["hitl.card", "subagent.status", "trace.mini", "scale.ai_generation", "chips.context", "qa.flow", "agent.writing", "agent.research", "batch.queue", "result.search", "approval.binary", "result.diff", "result.citation", "plan.editable", "tool.call", "evidence.pointer"];
 
-export { type AgentStatus, AgentStatusSchema, type AiGenerationScaleEvent, AiGenerationScaleEventSchema, type ApprovalState, ApprovalStateSchema, type ApproveRejectEvent, ApproveRejectEventSchema, type BatchQueueEvent, BatchQueueEventSchema, type BatchQueueItem, BatchQueueItemSchema, type CitationResultEvent, CitationResultEventSchema, type CitationSource, CitationSourceSchema, type ContextChipItem, ContextChipItemSchema, type ContextChipsEvent, ContextChipsEventSchema, type DiffHunk, DiffHunkSchema, type DiffResultEvent, DiffResultEventSchema, type EditablePlanEvent, EditablePlanEventSchema, HITL_EVENT_KINDS, type HitlCardEvent, HitlCardEventSchema, type HitlEvent, type HitlEventKind, HitlEventSchema, type MiniTraceEvent, MiniTraceEventSchema, type PlanStep, PlanStepSchema, type QAFlowEvent, QAFlowEventSchema, type QAQuestion, QAQuestionSchema, type ResearchAgentEvent, ResearchAgentEventSchema, SafeUrlSchema, type SearchResultEvent, SearchResultEventSchema, type SubagentStatusEvent, SubagentStatusEventSchema, type ToolCallPreviewEvent, ToolCallPreviewEventSchema, type ToolCallSignals, ToolCallSignalsSchema, type TraceStep, TraceStepSchema, type WritingAgentEvent, WritingAgentEventSchema };
+export { AUTHORIZING_STATES, type AgentStatus, AgentStatusSchema, type AiGenerationScaleEvent, AiGenerationScaleEventSchema, type ApprovalState, ApprovalStateSchema, type ApproveRejectEvent, ApproveRejectEventSchema, type BatchQueueEvent, BatchQueueEventSchema, type BatchQueueItem, BatchQueueItemSchema, type CitationResultEvent, CitationResultEventSchema, type CitationSource, CitationSourceSchema, type ContextChipItem, ContextChipItemSchema, type ContextChipsEvent, ContextChipsEventSchema, type DiffHunk, DiffHunkSchema, type DiffResultEvent, DiffResultEventSchema, type EditablePlanEvent, EditablePlanEventSchema, type EvidenceItem, EvidenceItemSchema, type EvidenceLocator, EvidenceLocatorSchema, type EvidencePointerEvent, EvidencePointerEventSchema, HITL_EVENT_KINDS, type HitlCardEvent, HitlCardEventSchema, type HitlEvent, type HitlEventKind, HitlEventSchema, type MiniTraceEvent, MiniTraceEventSchema, type PlanStep, PlanStepSchema, type QAFlowEvent, QAFlowEventSchema, type QAQuestion, QAQuestionSchema, type ResearchAgentEvent, ResearchAgentEventSchema, SafeUrlSchema, type SearchResultEvent, SearchResultEventSchema, type SubagentStatusEvent, SubagentStatusEventSchema, type ToolCallPreviewEvent, ToolCallPreviewEventSchema, type ToolCallSignals, ToolCallSignalsSchema, type TraceStep, TraceStepSchema, type WritingAgentEvent, WritingAgentEventSchema, isAuthorized };
