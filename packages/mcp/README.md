@@ -1,6 +1,6 @@
 # @hitl-kit/mcp
 
-> MCP server for [HITL Kit](https://hitlkit.dev). Exposes the 15 HITL primitive event kinds as Model Context Protocol tools so Claude Code, Cursor, Claude Desktop, and any MCP-aware client can emit schema-validated human-in-the-loop events.
+> MCP server for [HITL Kit](https://hitlkit.dev). Exposes the 16 HITL primitive event kinds as Model Context Protocol tools so Claude Code, Cursor, Claude Desktop, and any MCP-aware client can emit schema-validated human-in-the-loop events.
 
 ---
 
@@ -126,7 +126,7 @@ pnpm --filter @hitl-kit/mcp build
 ```
 
 Send a `list-tools` request via MCP Inspector or any stdio client;
-you should get all 15 `hitl_*` tools. Calling one with valid input
+you should get all 16 `hitl_*` tools. Calling one with valid input
 returns a HitlEvent; calling with invalid input returns a structured
 Zod error.
 

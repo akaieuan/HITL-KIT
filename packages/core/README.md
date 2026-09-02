@@ -10,7 +10,7 @@ by `<HitlEventRenderer />` in `@hitl-kit/react`.
 pnpm add @hitl-kit/core
 ```
 
-## The 15 primitive events
+## The 16 primitive events
 
 ```ts
 import { HitlEventSchema, type HitlEvent } from "@hitl-kit/core";
@@ -36,8 +36,33 @@ switch (event.kind) {
   case "result.citation":    /* Citation Result       */ break;
   case "plan.editable":      /* Editable Plan         */ break;
   case "tool.call":          /* Tool Call Preview     */ break;
+  case "evidence.pointer":   /* Evidence Pointer      */ break;
 }
 ```
+
+## The actions
+
+What the human did flows back as one discriminated object, typed here so
+every adapter and every UI primitive agree on the wire format:
+
+```ts
+import type { HitlAction, ToolCallAction } from "@hitl-kit/core";
+
+function onAction(a: ToolCallAction) {
+  switch (a.kind) {
+    case "approve":  /* run it              */ break;
+    case "reject":   /* don't               */ break;
+    case "abstain":  /* the human can't tell */ break;
+    case "undo":     /* reverse the last one */ break;
+    case "retry":    /* resume failed, again */ break;
+  }
+}
+```
+
+The vocabulary is shared across surfaces: a diff, a citation, a tool call and
+a binary row all say `approve` / `reject` / `abstain` / `undo`, whatever label
+the button shows. `abstain` is distinct from `reject` for the same reason
+`ApprovalState` has `abstained`: "I cannot tell" is not "no".
 
 Every event is a discriminated union member on `kind`. TypeScript
 narrows inside a switch, no casting needed.

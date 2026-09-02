@@ -1,6 +1,6 @@
-# API unification proposal (deferred to v1.0)
+# API unification proposal
 
-**Status:** Design doc, not yet executed. Captures the v0.7+ work flagged in the v0.6 audit.
+**Status:** Executed on 2026-09-02 as `@hitl-kit/ui`; see [unified-ui.md](./unified-ui.md) for what shipped and how it differs (actions live in core, abstain and undo everywhere, the registry is generated). Kept as the record of the problem as it was found.
 
 ## The problem
 
