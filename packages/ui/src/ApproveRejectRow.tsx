@@ -1,0 +1,137 @@
+"use client";
+
+import { Check, HelpCircle, Loader2, RotateCcw, X } from "lucide-react";
+import type { ApproveRejectAction, ApproveRejectEvent } from "@hitl-kit/core";
+import { cn } from "./lib/utils";
+import { TONE_TEXT, btnLink, focusRing, motion } from "./internal/ui";
+
+export interface ApproveRejectRowProps
+  extends Partial<Omit<ApproveRejectEvent, "state">>,
+    Pick<ApproveRejectEvent, "state"> {
+  onAction?: (action: ApproveRejectAction) => void;
+  /** Tailwind background class for the accent bar, e.g. "bg-[color:var(--accent-amber)]". */
+  accentClass?: string;
+  busy?: boolean;
+  allowAbstain?: boolean;
+  allowUndo?: boolean;
+  autoFocus?: boolean;
+  className?: string;
+}
+
+const STATE_TEXT = {
+  approved: { word: "Approved", tone: "ok" as const },
+  rejected: { word: "Rejected", tone: "bad" as const },
+  abstained: { word: "Couldn't tell", tone: "warn" as const },
+};
+
+/**
+ * Approve / Reject Row. The smallest decision surface: controlled, so the
+ * consumer owns `state` and hears every change through `onAction`.
+ * Three answers, not two: approve, reject, and "can't tell".
+ */
+export function ApproveRejectRow({
+  state,
+  label,
+  meta,
+  accent,
+  onAction,
+  accentClass,
+  busy,
+  allowAbstain = true,
+  allowUndo = true,
+  autoFocus,
+  className,
+}: ApproveRejectRowProps) {
+  const bar = accentClass ?? accent;
+
+  const small =
+    "inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium disabled:cursor-not-allowed disabled:opacity-50";
+
+  return (
+    <div
+      className={cn("flex items-center gap-3", className)}
+      role="group"
+      aria-label={label ? `Decision: ${label}` : "Approve or reject decision"}
+      aria-busy={busy || undefined}
+    >
+      {bar && <div className={cn("w-1 shrink-0 self-stretch rounded-full", bar)} aria-hidden="true" />}
+      <div className="min-w-0 flex-1">
+        {(label || meta) && (
+          <div className="mb-1.5 flex flex-wrap items-baseline gap-x-2">
+            {label && <span className="text-[13px] font-medium text-foreground">{label}</span>}
+            {meta && <span className="text-[11px] text-muted-foreground">{meta}</span>}
+          </div>
+        )}
+        {state === "pending" ? (
+          <div className="flex flex-wrap gap-1.5">
+            <button
+              type="button"
+              autoFocus={autoFocus}
+              disabled={busy}
+              onClick={() => onAction?.({ kind: "approve" })}
+              className={cn(
+                small,
+                "bg-[color:var(--accent-emerald)]/10 text-[color:var(--accent-emerald)] hover:bg-[color:var(--accent-emerald)]/20",
+                motion,
+                focusRing,
+              )}
+            >
+              {busy ? (
+                <Loader2 className="h-3 w-3 animate-spin motion-reduce:animate-none" aria-hidden="true" />
+              ) : (
+                <Check className="h-3 w-3" aria-hidden="true" />
+              )}
+              Approve
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => onAction?.({ kind: "reject" })}
+              className={cn(
+                small,
+                "bg-[color:var(--accent-rose)]/10 text-[color:var(--accent-rose)] hover:bg-[color:var(--accent-rose)]/20",
+                motion,
+                focusRing,
+              )}
+            >
+              <X className="h-3 w-3" aria-hidden="true" />
+              Reject
+            </button>
+            {allowAbstain && (
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => onAction?.({ kind: "abstain" })}
+                className={cn(
+                  small,
+                  "text-muted-foreground hover:bg-muted hover:text-foreground",
+                  motion,
+                  focusRing,
+                )}
+              >
+                <HelpCircle className="h-3 w-3" aria-hidden="true" />
+                Can't tell
+              </button>
+            )}
+          </div>
+        ) : (
+          <div className="flex items-center gap-2" role="status" aria-live="polite">
+            <span className={cn("text-xs font-medium", TONE_TEXT[STATE_TEXT[state].tone])}>
+              {STATE_TEXT[state].word}
+            </span>
+            {allowUndo && onAction && (
+              <button
+                type="button"
+                onClick={() => onAction({ kind: "undo" })}
+                className={cn(btnLink, "inline-flex items-center gap-1")}
+              >
+                <RotateCcw className="h-2.5 w-2.5" aria-hidden="true" />
+                undo
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

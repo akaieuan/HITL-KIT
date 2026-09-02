@@ -1,0 +1,213 @@
+"use client";
+
+import { useId, useState } from "react";
+import { Check, GripVertical, ListChecks, Lock, Plus, X } from "lucide-react";
+import type { EditablePlanAction, EditablePlanEvent, PlanStep } from "@hitl-kit/core";
+import { cn } from "./lib/utils";
+import type { DecisionSurfaceProps } from "./types";
+import {
+  Card,
+  HelpLine,
+  InlineError,
+  Loader,
+  ResolvedLine,
+  btnPrimary,
+  btnQuiet,
+  focusRing,
+  motion,
+} from "./internal/ui";
+
+export type { PlanStep };
+
+export interface EditablePlanProps
+  extends EditablePlanEvent,
+    Omit<DecisionSurfaceProps, "allowAbstain"> {
+  onAction?: (action: EditablePlanAction) => void;
+}
+
+/**
+ * Editable Plan. The steps the agent proposes, before it runs them: rename,
+ * reorder, add, remove (locked steps stay), then submit or cancel.
+ */
+export function EditablePlan({
+  title,
+  subtitle,
+  steps: initialSteps,
+  submitLabel,
+  onAction,
+  busy,
+  error,
+  help,
+  allowUndo = true,
+  autoFocus,
+  className,
+}: EditablePlanProps) {
+  const [steps, setSteps] = useState<PlanStep[]>(initialSteps);
+  const [state, setState] = useState<"idle" | "ran" | "cancelled">("idle");
+  const uid = useId();
+
+  const readOnlyList = (
+    <ol className="m-0 list-none space-y-1 px-3 py-2 p-0" aria-label="Plan steps">
+      {steps.map((s, i) => (
+        <li key={s.id} className="flex items-center gap-2">
+          <span className="font-mono text-[11px] text-muted-foreground" aria-hidden="true">
+            {i + 1}
+          </span>
+          <span className="text-foreground">{s.label}</span>
+          {s.locked && <Lock className="h-3 w-3 text-muted-foreground" aria-label="Locked" />}
+        </li>
+      ))}
+    </ol>
+  );
+
+  if (state !== "idle") {
+    return (
+      <ResolvedLine
+        resolution={state === "ran" ? "approved" : "dismissed"}
+        subject={state === "ran" ? `${submitLabel ?? "Run plan"} · ${steps.length} steps` : title}
+        onUndo={
+          allowUndo
+            ? () => {
+                setState("idle");
+                onAction?.({ kind: "undo" });
+              }
+            : undefined
+        }
+        details={readOnlyList}
+        detailsId={`plan-${uid}-resolved`}
+        className={className}
+      />
+    );
+  }
+
+  const move = (idx: number, dir: -1 | 1) => {
+    const next = [...steps];
+    const target = idx + dir;
+    if (target < 0 || target >= next.length) return;
+    [next[idx], next[target]] = [next[target]!, next[idx]!];
+    setSteps(next);
+  };
+  const remove = (idx: number) => {
+    if (steps[idx]?.locked) return;
+    setSteps(steps.filter((_, i) => i !== idx));
+  };
+  const update = (idx: number, label: string) =>
+    setSteps(steps.map((s, i) => (i === idx ? { ...s, label } : s)));
+  const addStep = () =>
+    setSteps([...steps, { id: `step-${Date.now()}`, label: "New step", locked: false }]);
+
+  return (
+    <Card label={`Editable plan: ${title}`} className={className}>
+      <div className="flex items-center gap-2 border-b border-border px-3 py-2">
+        <ListChecks className="h-3.5 w-3.5 shrink-0 text-[color:var(--accent-blue)]" aria-hidden="true" />
+        <div className="min-w-0 flex-1">
+          <span className="text-[13px] font-medium text-foreground">{title}</span>
+          {subtitle && <span className="ml-2 text-muted-foreground">{subtitle}</span>}
+        </div>
+      </div>
+
+      <HelpLine text={help} />
+
+      <ol className="m-0 list-none space-y-1 px-2 py-2" aria-label="Plan steps">
+        {steps.map((step, i) => (
+          <li
+            key={step.id}
+            className="group flex items-center gap-1.5 rounded-md border border-transparent px-1.5 py-1 hover:border-border focus-within:border-border"
+          >
+            <button
+              type="button"
+              onClick={() => move(i, -1)}
+              disabled={i === 0}
+              aria-label={`Move "${step.label}" up`}
+              className={cn(
+                "rounded text-muted-foreground opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 disabled:opacity-30",
+                motion,
+                focusRing,
+              )}
+            >
+              <GripVertical className="h-3.5 w-3.5" aria-hidden="true" />
+            </button>
+            <span className="font-mono text-[11px] text-muted-foreground" aria-hidden="true">
+              {i + 1}
+            </span>
+            <input
+              value={step.label}
+              onChange={(e) => update(i, e.target.value)}
+              disabled={step.locked}
+              aria-label={`Step ${i + 1}${step.locked ? " (locked)" : ""}`}
+              className={cn(
+                "flex-1 rounded bg-transparent text-foreground outline-none focus:ring-1 focus:ring-ring",
+                step.locked && "text-muted-foreground",
+              )}
+            />
+            {step.locked ? (
+              <Lock className="h-3 w-3 text-muted-foreground" aria-label="Locked" />
+            ) : (
+              <button
+                type="button"
+                onClick={() => remove(i)}
+                aria-label={`Remove "${step.label}"`}
+                className={cn(
+                  "rounded text-muted-foreground opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 hover:text-[color:var(--accent-rose)]",
+                  motion,
+                  focusRing,
+                )}
+              >
+                <X className="h-3.5 w-3.5" aria-hidden="true" />
+              </button>
+            )}
+          </li>
+        ))}
+      </ol>
+
+      <InlineError message={error} onRetry={onAction && (() => onAction({ kind: "retry" }))} />
+
+      <div className="flex items-center gap-2 border-t border-border px-3 py-2" aria-busy={busy || undefined}>
+        <button type="button" onClick={addStep} className={btnQuiet}>
+          <Plus className="h-3 w-3" aria-hidden="true" />
+          Add step
+        </button>
+        <button
+          type="button"
+          autoFocus={autoFocus}
+          disabled={busy}
+          onClick={() => {
+            setState("ran");
+            onAction?.({ kind: "submit", steps });
+          }}
+          className={cn(btnPrimary, "ml-auto")}
+        >
+          {busy ? <Loader /> : <Check className="h-3 w-3" aria-hidden="true" />}
+          {submitLabel ?? "Run plan"}
+        </button>
+        <button
+          type="button"
+          disabled={busy}
+          onClick={() => {
+            setState("cancelled");
+            onAction?.({ kind: "cancel" });
+          }}
+          className={btnQuiet}
+        >
+          <X className="h-3 w-3" aria-hidden="true" />
+          Cancel
+        </button>
+      </div>
+    </Card>
+  );
+}
+
+export const DEMO_PLAN: EditablePlanEvent = {
+  kind: "plan.editable",
+  id: "demo-plan",
+  title: "Draft research summary",
+  subtitle: "Reorder, edit, or remove steps before the agent runs",
+  steps: [
+    { id: "scope", label: "Define scope and target audience", locked: true },
+    { id: "search", label: "Search for primary sources" },
+    { id: "synthesise", label: "Synthesise key claims with citations" },
+    { id: "draft", label: "Draft 800-word summary" },
+    { id: "review", label: "Self-review for hedging language" },
+  ],
+  submitLabel: "Run plan",
+};

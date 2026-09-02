@@ -1,0 +1,127 @@
+"use client";
+
+import { useId } from "react";
+import type { AiGenerationScaleEvent, ScaleAction } from "@hitl-kit/core";
+import { cn } from "./lib/utils";
+import { motion } from "./internal/ui";
+import {
+  AI_GENERATION_ACCENTS,
+  AI_GENERATION_LEVELS,
+  AI_GENERATION_MAX,
+  aiLevelDescription,
+  aiLevelName,
+  clampAiLevel,
+} from "./ai-generation-levels";
+
+export interface AiGenerationBadgeProps
+  extends Partial<Omit<AiGenerationScaleEvent, "value" | "labels">>,
+    Pick<AiGenerationScaleEvent, "value"> {
+  labels?: readonly string[];
+  /** Omit for a static badge. Supplied, the pill grows ‹ › steppers. */
+  onAction?: (action: ScaleAction) => void;
+  ariaLabel?: string;
+  className?: string;
+}
+
+const PILL =
+  "inline-flex h-[22px] max-w-full items-center gap-1.5 rounded-full border border-border/60 px-2 align-middle";
+
+/**
+ * 16px glyph with a 24px hit area from the ::before overlay. At the end of
+ * the scale the stepper goes inert but stays focusable: `disabled` would
+ * drop focus onto body, `aria-disabled` announces the same without moving it.
+ */
+function Stepper({
+  glyph,
+  label,
+  atBound,
+  describedBy,
+  onClick,
+}: {
+  glyph: string;
+  label: string;
+  atBound: boolean;
+  describedBy: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={atBound ? undefined : onClick}
+      aria-disabled={atBound || undefined}
+      aria-label={label}
+      aria-describedby={describedBy}
+      className={cn(
+        "relative flex h-4 w-4 shrink-0 items-center justify-center rounded-full font-mono text-[11px] leading-none text-muted-foreground",
+        motion,
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+        atBound ? "cursor-default opacity-30" : "hover:text-foreground",
+        "before:absolute before:top-1/2 before:left-1/2 before:h-6 before:w-6 before:-translate-x-1/2 before:-translate-y-1/2 before:content-['']",
+      )}
+    >
+      <span aria-hidden>{glyph}</span>
+    </button>
+  );
+}
+
+/**
+ * The densest form: one pill with a five-dot indicator and the level name.
+ * Read-only it is a single `role="img"`. Given `onAction` it becomes a
+ * labelled group with two steppers and a polite live region.
+ */
+export function AiGenerationBadge({
+  value,
+  onAction,
+  labels = AI_GENERATION_LEVELS,
+  ariaLabel = "AI generation level",
+  className,
+}: AiGenerationBadgeProps) {
+  const interactive = typeof onAction === "function";
+  const v = clampAiLevel(value);
+  const accent = AI_GENERATION_ACCENTS[v];
+  const valueId = useId();
+
+  const dots = (
+    <span aria-hidden className="flex shrink-0 items-center gap-[3px]">
+      {AI_GENERATION_LEVELS.map((_, i) => (
+        <span
+          key={i}
+          className={cn("h-[2.5px] w-[2.5px] rounded-full", i <= v ? accent : "bg-muted-foreground/35")}
+        />
+      ))}
+    </span>
+  );
+
+  if (!interactive) {
+    return (
+      <span role="img" aria-label={`${ariaLabel}: ${aiLevelDescription(v, labels)}`} className={cn(PILL, className)}>
+        {dots}
+        <span className="truncate font-mono text-[11px] leading-none text-foreground">
+          {aiLevelName(v, labels)}
+        </span>
+      </span>
+    );
+  }
+
+  const set = (next: number) => onAction?.({ kind: "change", value: clampAiLevel(next) });
+
+  return (
+    <span role="group" aria-label={ariaLabel} className={cn(PILL, className)}>
+      <Stepper glyph="‹" label="Less AI involvement" atBound={v === 0} describedBy={valueId} onClick={() => set(v - 1)} />
+      {dots}
+      <span aria-hidden className="truncate font-mono text-[11px] leading-none text-foreground">
+        {aiLevelName(v, labels)}
+      </span>
+      <span id={valueId} className="sr-only" aria-live="polite">
+        {aiLevelDescription(v, labels)}
+      </span>
+      <Stepper
+        glyph="›"
+        label="More AI involvement"
+        atBound={v === AI_GENERATION_MAX}
+        describedBy={valueId}
+        onClick={() => set(v + 1)}
+      />
+    </span>
+  );
+}

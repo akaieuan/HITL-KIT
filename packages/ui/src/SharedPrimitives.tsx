@@ -1,0 +1,88 @@
+"use client";
+
+import { useState } from "react";
+import type { ApprovalState } from "@hitl-kit/core";
+import { cn } from "./lib/utils";
+import { ApproveRejectRow } from "./ApproveRejectRow";
+
+const ACCENT_SWATCHES = [
+  { label: "Violet", color: "bg-[color:var(--accent-violet)]" },
+  { label: "Amber", color: "bg-[color:var(--accent-amber)]" },
+  { label: "Blue", color: "bg-[color:var(--accent-blue)]" },
+  { label: "Emerald", color: "bg-[color:var(--accent-emerald)]" },
+  { label: "Rose", color: "bg-[color:var(--accent-rose)]" },
+];
+
+const APPROVAL_STATES: ApprovalState[] = ["pending", "approved", "rejected", "abstained"];
+
+const APPROVAL_BADGE: Record<ApprovalState, { word: string; className: string }> = {
+  pending: { word: "Pending", className: "bg-[color:var(--accent-amber)]/10 text-[color:var(--accent-amber)]" },
+  approved: { word: "Approved", className: "bg-[color:var(--accent-emerald)]/10 text-[color:var(--accent-emerald)]" },
+  rejected: { word: "Rejected", className: "bg-[color:var(--accent-rose)]/10 text-[color:var(--accent-rose)]" },
+  abstained: { word: "Couldn't tell", className: "bg-[color:var(--accent-amber)]/10 text-[color:var(--accent-amber)]" },
+};
+
+const LABEL = "mb-2 font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground";
+
+/** The palette the kit draws from: accents, the four approval badges, and the row that sets them. */
+export function SharedPrimitives({ className }: { className?: string }) {
+  const [approvals, setApprovals] = useState<Record<string, ApprovalState>>({
+    a: "pending",
+    b: "pending",
+    c: "pending",
+  });
+
+  return (
+    <div className={cn("space-y-5", className)}>
+      <div>
+        <p className={LABEL}>Accent colors</p>
+        <ul className="m-0 flex list-none flex-wrap gap-3 p-0">
+          {ACCENT_SWATCHES.map((s) => (
+            <li key={s.label} className="flex items-center gap-1.5">
+              <span className={cn("h-3 w-3 rounded-full", s.color)} aria-hidden="true" />
+              <span className="text-[11px] text-muted-foreground">{s.label}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <div>
+        <p className={LABEL}>Approval badges</p>
+        <div className="flex flex-wrap gap-2">
+          {APPROVAL_STATES.map((s) => (
+            <span key={s} className={cn("rounded-full px-2 py-0.5 text-[11px] font-medium", APPROVAL_BADGE[s].className)}>
+              {APPROVAL_BADGE[s].word}
+            </span>
+          ))}
+        </div>
+      </div>
+
+      <div>
+        <p className={LABEL}>Approve / reject</p>
+        <div className="space-y-1.5">
+          {(["a", "b", "c"] as const).map((k) => (
+            <div key={k} className="rounded-lg border border-border bg-background/40 px-3 py-2">
+              <ApproveRejectRow
+                label={`Item ${k.toUpperCase()}`}
+                state={approvals[k]}
+                onAction={(a) =>
+                  setApprovals((p) => ({
+                    ...p,
+                    [k]:
+                      a.kind === "approve"
+                        ? "approved"
+                        : a.kind === "reject"
+                          ? "rejected"
+                          : a.kind === "abstain"
+                            ? "abstained"
+                            : "pending",
+                  }))
+                }
+              />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}

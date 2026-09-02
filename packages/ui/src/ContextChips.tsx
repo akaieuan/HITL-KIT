@@ -1,0 +1,52 @@
+"use client";
+
+import { X } from "lucide-react";
+import type { ContextChipItem, ContextChipsAction, ContextChipsEvent } from "@hitl-kit/core";
+import { cn } from "./lib/utils";
+import { focusRing, motion } from "./internal/ui";
+
+export type { ContextChipItem };
+
+export interface ContextChipsProps
+  extends Partial<Omit<ContextChipsEvent, "items">>,
+    Pick<ContextChipsEvent, "items"> {
+  /** Supply to make chips removable. */
+  onAction?: (action: ContextChipsAction) => void;
+  maxVisible?: number;
+  className?: string;
+}
+
+/** Context Chips. What the agent was handed: notes, files, URLs. Removable when `onAction` is given. */
+export function ContextChips({ items, onAction, maxVisible, className }: ContextChipsProps) {
+  const visible = maxVisible ? items.slice(0, maxVisible) : items;
+  const overflow = maxVisible ? Math.max(0, items.length - maxVisible) : 0;
+
+  return (
+    <ul className={cn("m-0 flex list-none flex-wrap items-center gap-1.5 p-0", className)} aria-label="Context">
+      {visible.map((item) => (
+        <li
+          key={item.id}
+          className="flex items-center gap-1.5 rounded-full border border-border bg-background/40 px-2 py-0.5 text-xs text-foreground"
+        >
+          <span className={cn("h-2 w-2 shrink-0 rounded-full", item.color)} aria-hidden="true" />
+          <span className="max-w-[180px] truncate">{item.label}</span>
+          {onAction && (
+            <button
+              type="button"
+              onClick={() => onAction({ kind: "remove", id: item.id })}
+              className={cn("rounded-full text-muted-foreground hover:text-foreground", motion, focusRing)}
+              aria-label={`Remove ${item.label}`}
+            >
+              <X className="h-2.5 w-2.5" aria-hidden="true" />
+            </button>
+          )}
+        </li>
+      ))}
+      {overflow > 0 && (
+        <li className="rounded-full border border-dashed border-border px-2 py-0.5 text-[11px] text-muted-foreground">
+          +{overflow} more
+        </li>
+      )}
+    </ul>
+  );
+}

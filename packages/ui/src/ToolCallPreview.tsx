@@ -1,0 +1,155 @@
+"use client";
+
+import { useId, useState } from "react";
+import { Wrench } from "lucide-react";
+import type { ToolCallAction, ToolCallPreviewEvent } from "@hitl-kit/core";
+import type { DecisionSurfaceProps } from "./types";
+import {
+  Card,
+  Chip,
+  DecisionBar,
+  Disclosure,
+  HelpLine,
+  InlineError,
+  ResolvedLine,
+  type Resolution,
+} from "./internal/ui";
+
+export interface ToolCallPreviewProps
+  extends ToolCallPreviewEvent,
+    DecisionSurfaceProps {
+  onAction?: (action: ToolCallAction) => void;
+  /** Scopes that leave the system. Flagged in the signals row. Default: anything containing "external". */
+  isExternalScope?: (scope: string) => boolean;
+}
+
+const defaultExternal = (s: string) => /external|send|publish|delete/i.test(s);
+
+/**
+ * Tool Call Preview. The call the agent wants to make, shown before it runs:
+ * name, rationale, arguments on demand, and the signals a gate would read.
+ */
+export function ToolCallPreview({
+  id,
+  toolName,
+  rationale,
+  args,
+  signals,
+  approveLabel,
+  rejectLabel,
+  onAction,
+  isExternalScope = defaultExternal,
+  busy,
+  error,
+  help,
+  allowAbstain = true,
+  allowUndo = true,
+  autoFocus,
+  className,
+}: ToolCallPreviewProps) {
+  const [open, setOpen] = useState(false);
+  const [resolution, setResolution] = useState<Resolution | null>(null);
+  const uid = useId();
+  const argsId = `tool-call-${id ?? uid}-args`;
+
+  const confPct =
+    signals?.confidence === undefined ? null : Math.round(signals.confidence * 100);
+  const argCount = Object.keys(args).length;
+
+  const argsView = (
+    <pre
+      id={argsId}
+      className="overflow-x-auto border-t border-border bg-muted/30 px-3 py-2 font-mono text-[11px] leading-relaxed text-foreground"
+    >
+      {JSON.stringify(args, null, 2)}
+    </pre>
+  );
+
+  if (resolution) {
+    return (
+      <ResolvedLine
+        resolution={resolution}
+        subject={<span className="font-mono">{toolName}()</span>}
+        onUndo={
+          allowUndo
+            ? () => {
+                setResolution(null);
+                onAction?.({ kind: "undo" });
+              }
+            : undefined
+        }
+        details={argsView}
+        detailsId={`${argsId}-resolved`}
+        className={className}
+      />
+    );
+  }
+
+  const decide = (r: Resolution, action: ToolCallAction) => {
+    setResolution(r);
+    onAction?.(action);
+  };
+
+  return (
+    <Card label={`Tool call preview: ${toolName}`} className={className}>
+      <div className="flex items-center gap-2 border-b border-border px-3 py-2">
+        <Wrench className="h-3.5 w-3.5 shrink-0 text-[color:var(--accent-amber)]" aria-hidden="true" />
+        <span className="font-mono text-[13px] font-medium text-foreground">{toolName}()</span>
+        <Chip className="ml-auto">tool call</Chip>
+      </div>
+
+      <HelpLine text={help} />
+
+      {rationale && (
+        <p className="border-b border-border px-3 py-2 italic leading-relaxed text-muted-foreground">
+          {rationale}
+        </p>
+      )}
+
+      <Disclosure open={open} onToggle={() => setOpen((o) => !o)} controls={argsId}>
+        <span>Arguments</span>
+        <span className="ml-1 font-mono text-[11px]">({argCount})</span>
+      </Disclosure>
+      {open && argsView}
+
+      {signals && (confPct !== null || signals.costUsd !== undefined || signals.scope?.length) && (
+        <div className="flex flex-wrap items-center gap-2 border-t border-border px-3 py-2 text-muted-foreground">
+          {confPct !== null && (
+            <Chip title={`The agent's own confidence in this call: ${confPct} percent`}>
+              {confPct}% confidence
+            </Chip>
+          )}
+          {signals.costUsd !== undefined && (
+            <Chip title={`Estimated cost of this call in US dollars: ${signals.costUsd}`}>
+              ${signals.costUsd.toFixed(4)}
+            </Chip>
+          )}
+          {signals.scope?.map((s) =>
+            isExternalScope(s) ? (
+              <Chip key={s} tone="warn" title="This scope reaches outside the system">
+                {s}
+              </Chip>
+            ) : (
+              <Chip key={s} title="Scope this call runs under">
+                {s}
+              </Chip>
+            ),
+          )}
+        </div>
+      )}
+
+      <InlineError message={error} onRetry={onAction && (() => onAction({ kind: "retry" }))} />
+
+      <DecisionBar
+        approveLabel={approveLabel ?? "Run tool"}
+        rejectLabel={rejectLabel ?? "Reject"}
+        abstainLabel={allowAbstain ? "Can't tell" : undefined}
+        onApprove={() => decide("approved", { kind: "approve" })}
+        onReject={() => decide("rejected", { kind: "reject" })}
+        onAbstain={() => decide("abstained", { kind: "abstain" })}
+        busy={busy}
+        autoFocus={autoFocus}
+      />
+    </Card>
+  );
+}

@@ -1,0 +1,66 @@
+"use client";
+
+import type { AiGenerationScaleEvent, ScaleAction } from "@hitl-kit/core";
+import { cn } from "./lib/utils";
+import { focusRing, motion } from "./internal/ui";
+import { AI_GENERATION_ACCENTS, AI_GENERATION_LEVELS } from "./ai-generation-levels";
+
+export interface AiGenerationScaleProps
+  extends Partial<Omit<AiGenerationScaleEvent, "value" | "labels">>,
+    Pick<AiGenerationScaleEvent, "value"> {
+  labels?: readonly string[];
+  /** Omit for a read-only scale. */
+  onAction?: (action: ScaleAction) => void;
+  showLabel?: boolean;
+  className?: string;
+}
+
+/**
+ * The five-button segmented scale: the widest, most explicit form, for a
+ * settings panel where every option should be visible at once. For tight
+ * layouts use `AiGenerationSlider`, `AiGenerationMeter` or `AiGenerationBadge`.
+ */
+export function AiGenerationScale({
+  value,
+  onAction,
+  labels = AI_GENERATION_LEVELS,
+  showLabel = true,
+  className,
+}: AiGenerationScaleProps) {
+  const interactive = typeof onAction === "function";
+
+  return (
+    <div className={cn("w-full", className)} role="group" aria-label="AI generation level">
+      <div className="mb-1.5 flex gap-1">
+        {labels.map((l, i) => {
+          const isActive = value === i;
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => interactive && onAction?.({ kind: "change", value: i })}
+              disabled={!interactive}
+              aria-pressed={isActive}
+              className={cn(
+                "flex-1 rounded-md border py-1.5 text-center text-[11px] font-semibold uppercase tracking-wide",
+                motion,
+                focusRing,
+                isActive
+                  ? `${AI_GENERATION_ACCENTS[i]} border-transparent text-black`
+                  : "border-border text-muted-foreground",
+                interactive && !isActive && "hover:border-border-strong hover:text-foreground",
+              )}
+            >
+              {l}
+            </button>
+          );
+        })}
+      </div>
+      {showLabel && (
+        <p className="text-center text-[11px] text-muted-foreground" aria-live="polite">
+          Current: {labels[value]}
+        </p>
+      )}
+    </div>
+  );
+}

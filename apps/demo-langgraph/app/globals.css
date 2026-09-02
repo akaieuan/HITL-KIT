@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* The primitives ship as a package; Tailwind must scan their source for utilities. */
+@source "../../../packages/ui/src";
 
 :root {
   --background: #0a0a0a;

@@ -1,0 +1,161 @@
+"use client";
+
+import { useId, useState } from "react";
+import { ExternalLink, Quote } from "lucide-react";
+import type { CitationAction, CitationResultEvent } from "@hitl-kit/core";
+import type { DecisionSurfaceProps } from "./types";
+import {
+  Card,
+  Chip,
+  DecisionBar,
+  Disclosure,
+  HelpLine,
+  InlineError,
+  ResolvedLine,
+  motion,
+  type Resolution,
+} from "./internal/ui";
+import { cn } from "./lib/utils";
+
+export interface CitationResultProps
+  extends CitationResultEvent,
+    DecisionSurfaceProps {
+  onAction?: (action: CitationAction) => void;
+}
+
+/**
+ * Citation Result. The claim on top, the source below, the supporting quote
+ * on demand, and the decision: does the source say what the agent says it says?
+ */
+export function CitationResult({
+  id,
+  claim,
+  source,
+  confidence,
+  onAction,
+  busy,
+  error,
+  help,
+  allowAbstain = true,
+  allowUndo = true,
+  autoFocus,
+  className,
+}: CitationResultProps) {
+  const [open, setOpen] = useState(false);
+  const [resolution, setResolution] = useState<Resolution | null>(null);
+  const uid = useId();
+  const quoteId = `citation-${id ?? uid}-quote`;
+
+  const confPct = confidence === undefined ? null : Math.round(confidence * 100);
+
+  const body = (
+    <div className="px-3 py-2.5">
+      <div className="flex items-start gap-2">
+        <Quote className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[color:var(--accent-violet)]" aria-hidden="true" />
+        <p className="flex-1 text-[13px] leading-relaxed text-foreground">{claim}</p>
+      </div>
+      <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-muted-foreground">
+        <span className="font-medium text-foreground">{source.authors}</span>
+        <span aria-hidden="true">·</span>
+        <span>{source.year}</span>
+        {source.venue && (
+          <>
+            <span aria-hidden="true">·</span>
+            <span className="italic">{source.venue}</span>
+          </>
+        )}
+        {confPct !== null && (
+          <Chip className="ml-auto" title={`The agent's confidence that the source supports the claim: ${confPct} percent`}>
+            {confPct}% confidence
+          </Chip>
+        )}
+      </div>
+      <div className="mt-1 flex items-center gap-1 text-muted-foreground">
+        <span>{source.title}</span>
+        {source.url && (
+          <a
+            href={source.url}
+            target="_blank"
+            rel="noreferrer"
+            aria-label={`Open source: ${source.title}`}
+            className={cn("ml-1 inline-flex items-center rounded hover:text-foreground", motion)}
+          >
+            <ExternalLink className="h-3 w-3" aria-hidden="true" />
+          </a>
+        )}
+      </div>
+    </div>
+  );
+
+  const quote = source.quote && (
+    <blockquote
+      id={quoteId}
+      className="border-t border-border bg-muted/30 px-3 py-2 italic leading-relaxed text-muted-foreground"
+    >
+      &ldquo;{source.quote}&rdquo;
+      {source.pages && <span className="ml-2 not-italic">(pp. {source.pages})</span>}
+    </blockquote>
+  );
+
+  if (resolution) {
+    return (
+      <ResolvedLine
+        resolution={resolution}
+        subject={resolution === "approved" ? "Citation verified" : "Citation"}
+        onUndo={
+          allowUndo
+            ? () => {
+                setResolution(null);
+                onAction?.({ kind: "undo" });
+              }
+            : undefined
+        }
+        details={
+          <>
+            {body}
+            {quote}
+          </>
+        }
+        detailsId={`${quoteId}-resolved`}
+        className={className}
+      />
+    );
+  }
+
+  const decide = (r: Resolution, action: CitationAction) => {
+    setResolution(r);
+    onAction?.(action);
+  };
+
+  return (
+    <Card label="Citation for review" className={className}>
+      <HelpLine text={help} />
+      {body}
+
+      {source.quote && (
+        <Disclosure
+          open={open}
+          onToggle={() => setOpen((o) => !o)}
+          controls={quoteId}
+          className="border-t border-border"
+        >
+          <span>Supporting quote</span>
+        </Disclosure>
+      )}
+      {open && quote}
+
+      <InlineError message={error} onRetry={onAction && (() => onAction({ kind: "retry" }))} />
+
+      <DecisionBar
+        approveLabel="Verify"
+        rejectLabel="Reject"
+        abstainLabel={allowAbstain ? "Can't tell" : undefined}
+        onApprove={() => decide("approved", { kind: "approve" })}
+        onReject={() => decide("rejected", { kind: "reject" })}
+        onAbstain={() => decide("abstained", { kind: "abstain" })}
+        busy={busy}
+        autoFocus={autoFocus}
+      />
+    </Card>
+  );
+}

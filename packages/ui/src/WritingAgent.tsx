@@ -1,0 +1,144 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { PenLine } from "lucide-react";
+import type { AgentStatus, WritingAgentAction, WritingAgentEvent } from "@hitl-kit/core";
+import { cn } from "./lib/utils";
+import { STATUS_META } from "./subagent-meta";
+import { focusRing, motion } from "./internal/ui";
+
+const STATUSES: AgentStatus[] = ["idle", "running", "completed", "error", "skipped", "cancelled"];
+const LABEL = "font-mono text-[11px] uppercase tracking-[0.08em] text-muted-foreground";
+
+export interface WritingAgentProps extends WritingAgentEvent {
+  onAction?: (action: WritingAgentAction) => void;
+  /** Show the status chip row so a reader can step through the states. */
+  showStatusPicker?: boolean;
+  /** Cycle through the statuses on a timer, for a live demo. */
+  liveData?: boolean;
+  className?: string;
+}
+
+/** Writing Agent. A draft in progress: title, target, word range, evidence notes, and the agent's state. */
+export function WritingAgent({
+  status: initialStatus,
+  title,
+  target,
+  wordRange,
+  evidence,
+  onAction,
+  showStatusPicker = false,
+  liveData = false,
+  className,
+}: WritingAgentProps) {
+  const [status, setStatus] = useState<AgentStatus>(initialStatus);
+  useEffect(() => setStatus(initialStatus), [initialStatus]);
+
+  useEffect(() => {
+    if (!liveData) return;
+    let i = STATUSES.indexOf(initialStatus);
+    const t = setInterval(() => {
+      i = (i + 1) % STATUSES.length;
+      setStatus(STATUSES[i]!);
+    }, 1500);
+    return () => clearInterval(t);
+  }, [liveData, initialStatus]);
+
+  const meta = STATUS_META[status];
+  const Icon = meta.icon;
+
+  const pick = (s: AgentStatus) => {
+    setStatus(s);
+    onAction?.({ kind: "status", status: s });
+  };
+
+  return (
+    <div className={cn("space-y-3 rounded-xl border border-border bg-card p-4", className)} role="group" aria-label="Writing agent">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <PenLine className="h-4 w-4 text-[color:var(--accent-blue)]" aria-hidden="true" />
+          <span className="text-[13px] font-medium text-foreground">Write Doc Agent</span>
+        </div>
+        <div className="flex items-center gap-1.5" role="status" aria-live="polite">
+          <Icon
+            className={cn("h-3.5 w-3.5", meta.color, status === "running" && "animate-spin motion-reduce:animate-none")}
+            aria-hidden="true"
+          />
+          <span className={cn("text-xs", meta.color)}>{meta.label}</span>
+        </div>
+      </div>
+
+      <dl className="m-0 space-y-1 rounded-lg bg-background/40 px-3 py-2 text-xs">
+        {[
+          ["Title", title],
+          ["Target", target],
+          ["Word range", wordRange],
+        ].map(([k, v]) => (
+          <div key={k} className="flex justify-between gap-3">
+            <dt className="text-muted-foreground">{k}</dt>
+            <dd className="m-0 truncate font-medium text-foreground">{v}</dd>
+          </div>
+        ))}
+      </dl>
+
+      {evidence.length > 0 && (
+        <div className="space-y-1.5">
+          <p className={LABEL}>Evidence notes</p>
+          <ul className="m-0 list-none space-y-1.5 p-0">
+            {evidence.map((n) => (
+              <li key={n} className="flex items-center gap-2 text-xs text-muted-foreground">
+                <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[color:var(--accent-blue)]" aria-hidden="true" />
+                {n}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {status === "completed" && (
+        <button
+          type="button"
+          onClick={() => onAction?.({ kind: "open" })}
+          className={cn(
+            "w-full rounded-lg border border-[color:var(--accent-blue)]/30 bg-[color:var(--accent-blue)]/10 py-2 text-xs font-medium text-[color:var(--accent-blue)] hover:bg-[color:var(--accent-blue)]/20",
+            motion,
+            focusRing,
+          )}
+        >
+          View draft
+        </button>
+      )}
+
+      {showStatusPicker && !liveData && (
+        <div className="flex flex-wrap gap-1.5 border-t border-border pt-3" role="group" aria-label="Set status">
+          {STATUSES.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => pick(s)}
+              aria-pressed={status === s}
+              className={cn(
+                "rounded-full px-2 py-0.5 text-[11px] font-medium",
+                motion,
+                focusRing,
+                status === s ? "bg-foreground text-background" : "bg-muted text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {STATUS_META[s].label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+export const DEMO_WRITING_AGENT: WritingAgentEvent = {
+  kind: "agent.writing",
+  id: "demo-writing",
+  status: "idle",
+  title: "Climate Policy Analysis",
+  target: "Section 2",
+  wordRange: "400–600",
+  evidence: ["AR6 temperature overshoot", "Price corridor $50/tCO₂", "EU ETS reform outcomes"],
+};
