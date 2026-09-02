@@ -1,0 +1,64 @@
+{
+  "name": "@hitl-kit/ui",
+  "version": "0.1.0",
+  "description": "The HITL Kit primitives as one React package: every component takes the matching @hitl-kit/core event spread as props and reports the human's decision through a single typed onAction. The shadcn registry is generated from this source.",
+  "keywords": [
+    "hitl",
+    "human-in-the-loop",
+    "react",
+    "ai",
+    "agents",
+    "shadcn",
+    "components"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./registry.json": "./registry/registry.json"
+  },
+  "files": ["dist", "registry", "README.md"],
+  "scripts": {
+    "build": "tsup && pnpm registry:build",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "registry:build": "node scripts/registry-build.mjs",
+    "registry:check": "node scripts/registry-build.mjs --check",
+    "prepublishOnly": "pnpm typecheck && pnpm build"
+  },
+  "dependencies": {
+    "@hitl-kit/core": "workspace:*",
+    "clsx": "^2.1.1",
+    "tailwind-merge": "^3.5.0"
+  },
+  "peerDependencies": {
+    "lucide-react": ">=0.400.0",
+    "react": ">=18",
+    "react-dom": ">=18"
+  },
+  "devDependencies": {
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "lucide-react": "^1.8.0",
+    "react": "^19",
+    "react-dom": "^19",
+    "tsup": "^8.5.0",
+    "typescript": "^5"
+  },
+  "license": "MIT",
+  "author": "Ieuan King <ieuan@ubik.studio>",
+  "homepage": "https://hitlkit.dev",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/akaieuan/HITL-KIT.git",
+    "directory": "packages/ui"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

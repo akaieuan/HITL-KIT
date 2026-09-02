@@ -1,0 +1,34 @@
+/**
+ * UI-only types. Every event and action type lives in `@hitl-kit/core`;
+ * this file holds only what the components need that the protocol does not.
+ */
+
+export type {
+  AgentStatus,
+  ApprovalState,
+  HitlAction,
+} from "@hitl-kit/core";
+
+/** The interrupt card's local lifecycle. */
+export type HitlCardState = "idle" | "expanded" | "confirmed" | "dismissed";
+
+/**
+ * Props every decision surface accepts on top of its event.
+ *
+ * - `busy`: the consumer is resolving the last action (a resume in flight).
+ *   The bar disables and announces it. Heuristic 1, visibility of status.
+ * - `error`: the last action failed. Rendered inline with Retry. Heuristic 9.
+ * - `help`: one plain sentence under the header. Heuristic 10.
+ * - `allowAbstain`: offer "Can't tell". Default true. Heuristic 5.
+ * - `allowUndo`: keep Undo on the resolved line. Default true. Heuristic 3.
+ * - `autoFocus`: focus the primary action on mount, for queues. Heuristic 7.
+ */
+export interface DecisionSurfaceProps {
+  busy?: boolean;
+  error?: string;
+  help?: string;
+  allowAbstain?: boolean;
+  allowUndo?: boolean;
+  autoFocus?: boolean;
+  className?: string;
+}

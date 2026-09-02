@@ -1,0 +1,107 @@
+"use client";
+
+import { useState } from "react";
+import { GraduationCap } from "lucide-react";
+import type { ResearchAgentAction, ResearchAgentEvent } from "@hitl-kit/core";
+import { cn } from "./lib/utils";
+import { focusRing, motion } from "./internal/ui";
+
+type Mode = ResearchAgentEvent["mode"];
+
+const MODES: Mode[] = ["create", "followup", "readurl"];
+const MODE_LABEL: Record<Mode, string> = {
+  create: "Create",
+  followup: "Follow-up",
+  readurl: "Read URL",
+};
+
+/** Keys rendered in mono: identifiers and addresses, not prose. */
+const MONO_KEYS = new Set(["Session", "URL"]);
+
+export interface ResearchAgentProps extends Partial<Omit<ResearchAgentEvent, "mode">>, Pick<ResearchAgentEvent, "mode"> {
+  onAction?: (action: ResearchAgentAction) => void;
+  /** Per-mode config, used when the event's `config` is empty. */
+  configByMode?: Partial<Record<Mode, Record<string, string>>>;
+  className?: string;
+}
+
+/** Research Agent. Three operating modes for a long-running research task, and the config each one runs with. */
+export function ResearchAgent({
+  mode: initialMode,
+  config = {},
+  onAction,
+  configByMode = DEMO_RESEARCH_CONFIG,
+  className,
+}: ResearchAgentProps) {
+  const [mode, setMode] = useState<Mode>(initialMode);
+  // Follow the prop when it changes, without an effect: derive during render.
+  const [seen, setSeen] = useState(initialMode);
+  if (initialMode !== seen) {
+    setSeen(initialMode);
+    setMode(initialMode);
+  }
+
+  const rows =
+    mode === initialMode && Object.keys(config).length > 0 ? config : (configByMode[mode] ?? {});
+
+  return (
+    <div className={cn("space-y-3 rounded-xl border border-border bg-card p-4", className)} role="group" aria-label="Research agent">
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <GraduationCap className="h-4 w-4 text-[color:var(--accent-violet)]" aria-hidden="true" />
+          <span className="text-[13px] font-medium text-foreground">Research Agent</span>
+        </div>
+        <div className="flex gap-1" role="group" aria-label="Mode">
+          {MODES.map((m) => (
+            <button
+              key={m}
+              type="button"
+              aria-pressed={mode === m}
+              onClick={() => {
+                setMode(m);
+                onAction?.({ kind: "mode", mode: m });
+              }}
+              className={cn(
+                "rounded-full px-2 py-0.5 text-[11px] font-medium",
+                motion,
+                focusRing,
+                mode === m ? "bg-foreground text-background" : "bg-muted text-muted-foreground hover:text-foreground",
+              )}
+            >
+              {MODE_LABEL[m]}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <dl className="m-0 space-y-1.5 rounded-lg bg-background/40 px-3 py-2.5 text-xs">
+        {Object.entries(rows).map(([k, v]) => (
+          <div key={k} className="flex justify-between gap-3">
+            <dt className="text-muted-foreground">{k}</dt>
+            <dd
+              className={cn(
+                "m-0 max-w-[160px] truncate text-foreground",
+                MONO_KEYS.has(k) ? "font-mono text-[11px]" : "font-medium",
+              )}
+            >
+              {v}
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
+export const DEMO_RESEARCH_CONFIG: Record<Mode, Record<string, string>> = {
+  create: { Profile: "Academic, Climate Policy", Engine: "Semantic Scholar + Web", Depth: "Deep (5 hops)" },
+  followup: { Session: "sess_3a9f12", Query: "EU ETS price volatility" },
+  readurl: { URL: "ec.europa.eu/clima/ets", Extract: "Tables + Key passages" },
+};
+
+export const DEMO_RESEARCH_AGENT: ResearchAgentEvent = {
+  kind: "agent.research",
+  id: "demo-research",
+  mode: "create",
+  config: DEMO_RESEARCH_CONFIG.create,
+};

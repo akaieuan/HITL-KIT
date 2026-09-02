@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { HitlEventRenderer, createRegistry } from "@hitl-kit/react";
 import type { HitlCardEvent } from "@hitl-kit/core";
-import { HitlCard } from "@/components/hitl/HitlCard";
+import { HitlCard } from "@hitl-kit/ui";
 
 type Phase = "idle" | "running" | "awaiting" | "resolved";
 
@@ -65,18 +65,12 @@ export function AiSdkRunner() {
   const registry = createRegistry({
     "hitl.card": (ev) => (
       <HitlCard
-        config={{
-          id: ev.id ?? "default",
-          kind: ev.variant,
-          title: ev.title,
-          subtitle: ev.subtitle,
-          steps: ev.steps,
-          runLabel: ev.runLabel,
-          editPlaceholder: ev.editPlaceholder,
-          openTab: "human",
+        {...ev}
+        defaultExpanded
+        onAction={(a) => {
+          if (a.kind === "approve") resolve(true);
+          else if (a.kind === "dismiss") resolve(false);
         }}
-        onConfirm={() => resolve(true)}
-        onDismiss={() => resolve(false)}
       />
     ),
   });

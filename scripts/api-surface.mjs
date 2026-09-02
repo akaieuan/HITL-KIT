@@ -29,7 +29,7 @@ const REPO = resolve(__dirname, "..");
 const OUT = join(REPO, "api-surface");
 const CHECK = process.argv.includes("--check");
 
-const PACKAGES = ["core", "react", "gates", "langgraph", "ai-sdk", "mcp"];
+const PACKAGES = ["core", "react", "ui", "gates", "langgraph", "ai-sdk", "mcp"];
 
 mkdirSync(OUT, { recursive: true });
 

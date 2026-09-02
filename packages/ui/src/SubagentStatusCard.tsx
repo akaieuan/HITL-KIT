@@ -1,0 +1,49 @@
+"use client";
+
+import type { SubagentStatusEvent } from "@hitl-kit/core";
+import { cn } from "./lib/utils";
+import { STATUS_META } from "./subagent-meta";
+
+export interface SubagentStatusCardProps
+  extends Partial<Omit<SubagentStatusEvent, "status" | "label">>,
+    Pick<SubagentStatusEvent, "status" | "label"> {
+  className?: string;
+}
+
+/** Subagent Status. One row: an icon in an orb, the agent's name, and its state in words. */
+export function SubagentStatusCard({
+  status,
+  label,
+  detail,
+  className,
+}: SubagentStatusCardProps) {
+  const meta = STATUS_META[status];
+  const Icon = meta.icon;
+
+  return (
+    <div
+      className={cn(
+        "flex items-center gap-3 rounded-lg border border-border bg-background/40 px-3 py-2.5",
+        className,
+      )}
+      role="status"
+      aria-label={`${label}: ${meta.label}`}
+    >
+      <div className="flex h-7 w-7 items-center justify-center rounded-full bg-muted">
+        <Icon
+          className={cn(
+            "h-3.5 w-3.5",
+            meta.color,
+            status === "running" && "animate-spin motion-reduce:animate-none",
+          )}
+          aria-hidden="true"
+        />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="text-xs font-medium text-foreground">{label}</p>
+        {detail && <p className="truncate text-[11px] text-muted-foreground">{detail}</p>}
+      </div>
+      <span className={cn("text-[11px] font-medium", meta.color)}>{meta.label}</span>
+    </div>
+  );
+}

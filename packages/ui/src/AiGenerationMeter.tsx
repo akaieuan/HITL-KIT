@@ -1,0 +1,59 @@
+import type { AiGenerationScaleEvent } from "@hitl-kit/core";
+import { cn } from "./lib/utils";
+import {
+  AI_GENERATION_LEVELS,
+  AI_GENERATION_SPECTRUM,
+  aiLevelDescription,
+  aiLevelFill,
+  aiLevelName,
+  clampAiLevel,
+} from "./ai-generation-levels";
+
+export interface AiGenerationMeterProps
+  extends Partial<Omit<AiGenerationScaleEvent, "value" | "labels">>,
+    Pick<AiGenerationScaleEvent, "value"> {
+  labels?: readonly string[];
+  /** Drop the level name and keep only the bar, for very tight cells. */
+  compact?: boolean;
+  /** Overrides the generated description, e.g. "Provenance: Collaborative, 3 of 5". */
+  ariaLabel?: string;
+  className?: string;
+}
+
+/**
+ * At-a-glance provenance: the whole spectrum shown faintly, lit as far as
+ * the current level, plus the level name. Deliberately read-only and a
+ * single `role="img"`, so a table of fifty rows does not add fifty tab
+ * stops. No "use client": no state, no handlers.
+ */
+export function AiGenerationMeter({
+  value,
+  labels = AI_GENERATION_LEVELS,
+  compact = false,
+  ariaLabel,
+  className,
+}: AiGenerationMeterProps) {
+  const v = clampAiLevel(value);
+  const fill = aiLevelFill(v);
+
+  return (
+    <span
+      role="img"
+      aria-label={ariaLabel ?? aiLevelDescription(v, labels)}
+      className={cn("inline-flex h-5 max-w-full items-center gap-2.5 align-middle", className)}
+    >
+      <span className="relative h-2.5 w-20 shrink-0 overflow-hidden rounded-full bg-muted">
+        {/* The whole spectrum, dimmed: where the level could be. */}
+        <span className="absolute inset-0 opacity-25" style={{ background: AI_GENERATION_SPECTRUM }} />
+        {/* Lit as far as the level: where it is. */}
+        <span
+          className="absolute inset-y-0 left-0 rounded-full"
+          style={{ width: `${fill}%`, background: AI_GENERATION_SPECTRUM, backgroundSize: `${10000 / fill}% 100%` }}
+        />
+      </span>
+      {compact ? null : (
+        <span className="truncate text-xs font-medium leading-none text-foreground">{aiLevelName(v, labels)}</span>
+      )}
+    </span>
+  );
+}

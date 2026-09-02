@@ -1,0 +1,84 @@
+"use client";
+
+import type { AiGenerationScaleEvent, ScaleAction } from "@hitl-kit/core";
+import { cn } from "./lib/utils";
+import { focusRing, motion } from "./internal/ui";
+import {
+  AI_GENERATION_ACCENTS,
+  AI_GENERATION_LEVELS,
+  aiLevelMeaning,
+  aiLevelName,
+  clampAiLevel,
+} from "./ai-generation-levels";
+
+export interface AiGenerationScaleProps
+  extends Partial<Omit<AiGenerationScaleEvent, "value" | "labels">>,
+    Pick<AiGenerationScaleEvent, "value"> {
+  labels?: readonly string[];
+  /** Omit for a read-only scale. */
+  onAction?: (action: ScaleAction) => void;
+  /** Show the level name and its meaning under the control. */
+  showLabel?: boolean;
+  className?: string;
+}
+
+/**
+ * The segmented control: five options in one pill, the chosen one raised.
+ * The widest, most explicit form, for a settings panel where every option
+ * should be visible at once. Each segment carries its colour as a dot, so
+ * the ordinal reads left to right even before you read the words.
+ */
+export function AiGenerationScale({
+  value,
+  onAction,
+  labels = AI_GENERATION_LEVELS,
+  showLabel = true,
+  className,
+}: AiGenerationScaleProps) {
+  const interactive = typeof onAction === "function";
+  const v = clampAiLevel(value);
+
+  return (
+    <div className={cn("w-full", className)} role="group" aria-label="AI generation level">
+      {/* Segments never truncate: the pill takes the width its labels need and
+          the consumer lets it scroll when the column is narrower than that. */}
+      <div className="flex w-full min-w-max gap-0.5 rounded-xl bg-muted p-1">
+        {labels.map((l, i) => {
+          const isActive = v === i;
+          return (
+            <button
+              key={i}
+              type="button"
+              onClick={() => interactive && onAction?.({ kind: "change", value: i })}
+              disabled={!interactive}
+              aria-pressed={isActive}
+              className={cn(
+                "flex flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg px-2.5 py-1.5 text-xs",
+                motion,
+                focusRing,
+                isActive
+                  ? "bg-background font-medium text-foreground shadow-[0_1px_2px_rgba(0,0,0,0.25),0_0_0_1px_rgba(255,255,255,0.06)]"
+                  : "text-muted-foreground",
+                interactive && !isActive && "hover:text-foreground",
+                !interactive && "cursor-default",
+              )}
+            >
+              <span
+                aria-hidden="true"
+                className={cn("h-1.5 w-1.5 shrink-0 rounded-full", AI_GENERATION_ACCENTS[i], !isActive && "opacity-50")}
+              />
+              <span>{l}</span>
+            </button>
+          );
+        })}
+      </div>
+      {showLabel && (
+        <p className="mt-2 text-xs leading-relaxed text-muted-foreground" aria-live="polite">
+          <span className="font-medium text-foreground">{aiLevelName(v, labels)}</span>
+          <span aria-hidden="true"> · </span>
+          {aiLevelMeaning(v)}
+        </p>
+      )}
+    </div>
+  );
+}

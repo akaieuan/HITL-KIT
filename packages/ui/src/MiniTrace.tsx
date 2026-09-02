@@ -1,0 +1,95 @@
+"use client";
+
+import { useState } from "react";
+import { ChevronDown, ChevronRight } from "lucide-react";
+import type { MiniTraceEvent, TraceAction, TraceStep } from "@hitl-kit/core";
+import { cn } from "./lib/utils";
+import { focusRing, motion } from "./internal/ui";
+
+export type { TraceStep };
+
+export interface MiniTraceProps
+  extends Partial<Omit<MiniTraceEvent, "steps">>,
+    Pick<MiniTraceEvent, "steps"> {
+  onAction?: (action: TraceAction) => void;
+  className?: string;
+}
+
+const TRACE_COLORS: Record<TraceStep["type"], { dot: string; border: string; bg: string }> = {
+  thought: {
+    dot: "bg-[color:var(--accent-violet)]",
+    border: "border-[color:var(--accent-violet)]/30",
+    bg: "bg-[color:var(--accent-violet)]/5",
+  },
+  action: {
+    dot: "bg-[color:var(--accent-blue)]",
+    border: "border-[color:var(--accent-blue)]/30",
+    bg: "bg-[color:var(--accent-blue)]/5",
+  },
+  result: {
+    dot: "bg-[color:var(--accent-emerald)]",
+    border: "border-[color:var(--accent-emerald)]/30",
+    bg: "bg-[color:var(--accent-emerald)]/5",
+  },
+};
+
+/** MiniTrace. Thought, action, result, one row each; a row with detail opens. */
+export function MiniTrace({ steps, onAction, className }: MiniTraceProps) {
+  const [expanded, setExpanded] = useState<Set<number>>(new Set());
+  const toggle = (i: number) =>
+    setExpanded((p) => {
+      const n = new Set(p);
+      const open = !n.has(i);
+      if (open) n.add(i);
+      else n.delete(i);
+      onAction?.({ kind: "toggle", index: i, expanded: open });
+      return n;
+    });
+
+  return (
+    <ol className={cn("m-0 list-none space-y-1.5 p-0", className)} aria-label="Agent trace">
+      {steps.map((step, i) => {
+        const c = TRACE_COLORS[step.type];
+        const open = expanded.has(i);
+        return (
+          <li key={i} className={cn("rounded-lg border px-3 py-2 text-xs", c.border, c.bg)}>
+            <button
+              type="button"
+              onClick={() => toggle(i)}
+              disabled={!step.detail}
+              aria-expanded={step.detail ? open : undefined}
+              className={cn("flex w-full items-center gap-2 rounded text-left", motion, focusRing)}
+            >
+              <span className={cn("h-2 w-2 shrink-0 rounded-full", c.dot)} aria-hidden="true" />
+              <span className="flex-1 font-medium capitalize text-foreground">
+                {step.type}: {step.label}
+              </span>
+              {step.detail &&
+                (open ? (
+                  <ChevronDown className="h-3 w-3 shrink-0 text-muted-foreground" aria-hidden="true" />
+                ) : (
+                  <ChevronRight className="h-3 w-3 shrink-0 text-muted-foreground" aria-hidden="true" />
+                ))}
+            </button>
+            {open && step.detail && (
+              <p className="mt-1 pl-4 text-[11px] text-muted-foreground">{step.detail}</p>
+            )}
+          </li>
+        );
+      })}
+    </ol>
+  );
+}
+
+export const DEMO_TRACE: MiniTraceEvent = {
+  kind: "trace.mini",
+  id: "demo-trace",
+  steps: [
+    { type: "thought", label: "Determine search strategy", detail: "Analyzing query intent and relevant databases" },
+    { type: "action", label: "Execute semantic search", detail: 'Query: "carbon pricing" returned 177 results' },
+    { type: "result", label: "Ranked results ready", detail: "Top 5 results surfaced with relevance scores" },
+  ],
+};
+
+/** @deprecated use `DEMO_TRACE.steps` */
+export const DEMO_TRACE_STEPS: TraceStep[] = DEMO_TRACE.steps;

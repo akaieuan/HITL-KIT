@@ -1,0 +1,121 @@
+"use client";
+
+import { useId } from "react";
+import type { AiGenerationScaleEvent, ScaleAction } from "@hitl-kit/core";
+import { cn } from "./lib/utils";
+import { motion } from "./internal/ui";
+import {
+  AI_GENERATION_LEVELS,
+  AI_GENERATION_MAX,
+  aiLevelAccent,
+  aiLevelDescription,
+  aiLevelName,
+  aiLevelTint,
+  clampAiLevel,
+} from "./ai-generation-levels";
+
+export interface AiGenerationBadgeProps
+  extends Partial<Omit<AiGenerationScaleEvent, "value" | "labels">>,
+    Pick<AiGenerationScaleEvent, "value"> {
+  labels?: readonly string[];
+  /** Omit for a static badge. Supplied, the pill grows ‹ › steppers. */
+  onAction?: (action: ScaleAction) => void;
+  ariaLabel?: string;
+  className?: string;
+}
+
+const PILL =
+  "inline-flex h-6 max-w-full items-center gap-1.5 rounded-full border px-2.5 align-middle transition-colors duration-150 ease-out motion-reduce:transition-none";
+
+/**
+ * 16px glyph with a 24px hit area from the ::before overlay. At the end of
+ * the scale the stepper goes inert but stays focusable: `disabled` would
+ * drop focus onto body, `aria-disabled` announces the same without moving it.
+ */
+function Stepper({
+  glyph,
+  label,
+  atBound,
+  describedBy,
+  onClick,
+}: {
+  glyph: string;
+  label: string;
+  atBound: boolean;
+  describedBy: string;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={atBound ? undefined : onClick}
+      aria-disabled={atBound || undefined}
+      aria-label={label}
+      aria-describedby={describedBy}
+      className={cn(
+        "relative flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[13px] leading-none text-foreground/60",
+        motion,
+        "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring",
+        atBound ? "cursor-default opacity-30" : "hover:text-foreground",
+        "before:absolute before:top-1/2 before:left-1/2 before:h-6 before:w-6 before:-translate-x-1/2 before:-translate-y-1/2 before:content-['']",
+      )}
+    >
+      <span aria-hidden>{glyph}</span>
+    </button>
+  );
+}
+
+/**
+ * The densest form: a pill tinted with the level's colour, a solid dot, and
+ * the level name. Read-only it is a single `role="img"`. Given `onAction` it
+ * becomes a labelled group with two steppers and a polite live region.
+ */
+export function AiGenerationBadge({
+  value,
+  onAction,
+  labels = AI_GENERATION_LEVELS,
+  ariaLabel = "AI generation level",
+  className,
+}: AiGenerationBadgeProps) {
+  const interactive = typeof onAction === "function";
+  const v = clampAiLevel(value);
+  const valueId = useId();
+
+  const dot = <span aria-hidden className={cn("h-2 w-2 shrink-0 rounded-full", aiLevelAccent(v))} />;
+  const text = <span className="truncate text-[11px] font-medium leading-none text-foreground">{aiLevelName(v, labels)}</span>;
+
+  if (!interactive) {
+    return (
+      <span
+        role="img"
+        aria-label={`${ariaLabel}: ${aiLevelDescription(v, labels)}`}
+        className={cn(PILL, aiLevelTint(v), className)}
+      >
+        {dot}
+        {text}
+      </span>
+    );
+  }
+
+  const set = (next: number) => onAction?.({ kind: "change", value: clampAiLevel(next) });
+
+  return (
+    <span role="group" aria-label={ariaLabel} className={cn(PILL, aiLevelTint(v), className)}>
+      <Stepper glyph="‹" label="Less AI involvement" atBound={v === 0} describedBy={valueId} onClick={() => set(v - 1)} />
+      {dot}
+      <span aria-hidden className="truncate text-[11px] font-medium leading-none text-foreground">
+        {aiLevelName(v, labels)}
+      </span>
+      <span id={valueId} className="sr-only" aria-live="polite">
+        {aiLevelDescription(v, labels)}
+      </span>
+      <Stepper
+        glyph="›"
+        label="More AI involvement"
+        atBound={v === AI_GENERATION_MAX}
+        describedBy={valueId}
+        onClick={() => set(v + 1)}
+      />
+    </span>
+  );
+}

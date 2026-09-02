@@ -14,7 +14,7 @@ pnpm add @hitl-kit/core @hitl-kit/react @hitl-kit/ai-sdk ai zod
 
 Unlike LangGraph, Vercel AI SDK doesn't have a native `interrupt()` /
 `Command` primitive. The canonical way for an agent to "ask the human
-something" in AI SDK is to call a tool. This adapter gives you 15
+something" in AI SDK is to call a tool. This adapter gives you 16
 typed `tool()` wrappers — one per HITL Kit primitive — whose input
 schemas mirror the primitive's event shape and whose return values are
 validated HITL events ready to pass to `<HitlEventRenderer />`.

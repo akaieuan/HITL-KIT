@@ -1,0 +1,130 @@
+"use client";
+
+import { useId, useState } from "react";
+import { FileDiff } from "lucide-react";
+import type { DiffAction, DiffResultEvent } from "@hitl-kit/core";
+import type { DecisionSurfaceProps } from "./types";
+import {
+  Card,
+  Chip,
+  DecisionBar,
+  HelpLine,
+  InlineError,
+  ResolvedLine,
+  type Resolution,
+} from "./internal/ui";
+
+export interface DiffResultProps extends DiffResultEvent, DecisionSurfaceProps {
+  onAction?: (action: DiffAction) => void;
+}
+
+/**
+ * Diff Result. Before and after for a proposed edit, one strip per hunk,
+ * so the human sees exactly what changes before it lands.
+ */
+export function DiffResult({
+  id,
+  title,
+  subtitle,
+  language,
+  hunks,
+  acceptLabel,
+  rejectLabel,
+  onAction,
+  busy,
+  error,
+  help,
+  allowAbstain = true,
+  allowUndo = true,
+  autoFocus,
+  className,
+}: DiffResultProps) {
+  const [resolution, setResolution] = useState<Resolution | null>(null);
+  const uid = useId();
+  const baseId = `diff-${id ?? uid}`;
+
+  const hunksView = (
+    <div className="space-y-2 px-3 py-2">
+      {hunks.map((hunk, i) => (
+        <div
+          key={i}
+          className="overflow-hidden rounded-md border border-border"
+          aria-label={hunk.startLine !== undefined ? `Hunk at line ${hunk.startLine}` : `Hunk ${i + 1}`}
+        >
+          {hunk.startLine !== undefined && (
+            <div className="bg-muted/40 px-2 py-1 font-mono text-[11px] text-muted-foreground">
+              @ line {hunk.startLine}
+            </div>
+          )}
+          <pre
+            className="overflow-x-auto whitespace-pre-wrap break-words bg-[color:var(--accent-rose)]/8 px-2 py-1.5 font-mono text-[11px] leading-relaxed text-foreground"
+            aria-label="Original text"
+          >
+            <span className="select-none text-[color:var(--accent-rose)]" aria-hidden="true">- </span>
+            {hunk.before}
+          </pre>
+          <pre
+            className="overflow-x-auto whitespace-pre-wrap break-words bg-[color:var(--accent-emerald)]/8 px-2 py-1.5 font-mono text-[11px] leading-relaxed text-foreground"
+            aria-label="Proposed text"
+          >
+            <span className="select-none text-[color:var(--accent-emerald)]" aria-hidden="true">+ </span>
+            {hunk.after}
+          </pre>
+        </div>
+      ))}
+    </div>
+  );
+
+  if (resolution) {
+    return (
+      <ResolvedLine
+        resolution={resolution}
+        subject={title}
+        onUndo={
+          allowUndo
+            ? () => {
+                setResolution(null);
+                onAction?.({ kind: "undo" });
+              }
+            : undefined
+        }
+        details={hunksView}
+        detailsId={`${baseId}-resolved`}
+        className={className}
+      />
+    );
+  }
+
+  const decide = (r: Resolution, action: DiffAction) => {
+    setResolution(r);
+    onAction?.(action);
+  };
+
+  return (
+    <Card label={`Proposed diff: ${title}`} className={className}>
+      <div className="flex items-center gap-2 border-b border-border px-3 py-2">
+        <FileDiff className="h-3.5 w-3.5 shrink-0 text-[color:var(--accent-blue)]" aria-hidden="true" />
+        <div className="min-w-0 flex-1">
+          <span className="text-[13px] font-medium text-foreground">{title}</span>
+          {subtitle && <span className="ml-2 text-muted-foreground">{subtitle}</span>}
+        </div>
+        {language && <Chip title="Language of the edited text">{language}</Chip>}
+      </div>
+
+      <HelpLine text={help} />
+      {hunksView}
+      <InlineError message={error} onRetry={onAction && (() => onAction({ kind: "retry" }))} />
+
+      <DecisionBar
+        approveLabel={acceptLabel ?? "Apply edit"}
+        rejectLabel={rejectLabel ?? "Keep original"}
+        abstainLabel={allowAbstain ? "Can't tell" : undefined}
+        onApprove={() => decide("approved", { kind: "approve" })}
+        onReject={() => decide("rejected", { kind: "reject" })}
+        onAbstain={() => decide("abstained", { kind: "abstain" })}
+        busy={busy}
+        autoFocus={autoFocus}
+      />
+    </Card>
+  );
+}
