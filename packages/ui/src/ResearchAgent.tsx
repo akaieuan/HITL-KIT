@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { GraduationCap } from "lucide-react";
 import type { ResearchAgentAction, ResearchAgentEvent } from "@hitl-kit/core";
 import { cn } from "./lib/utils";
@@ -34,7 +34,12 @@ export function ResearchAgent({
   className,
 }: ResearchAgentProps) {
   const [mode, setMode] = useState<Mode>(initialMode);
-  useEffect(() => setMode(initialMode), [initialMode]);
+  // Follow the prop when it changes, without an effect: derive during render.
+  const [seen, setSeen] = useState(initialMode);
+  if (initialMode !== seen) {
+    setSeen(initialMode);
+    setMode(initialMode);
+  }
 
   const rows =
     mode === initialMode && Object.keys(config).length > 0 ? config : (configByMode[mode] ?? {});

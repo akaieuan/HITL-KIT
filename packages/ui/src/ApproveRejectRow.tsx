@@ -110,7 +110,7 @@ export function ApproveRejectRow({
                 )}
               >
                 <HelpCircle className="h-3 w-3" aria-hidden="true" />
-                Can't tell
+                Can&apos;t tell
               </button>
             )}
           </div>

@@ -32,7 +32,12 @@ export function WritingAgent({
   className,
 }: WritingAgentProps) {
   const [status, setStatus] = useState<AgentStatus>(initialStatus);
-  useEffect(() => setStatus(initialStatus), [initialStatus]);
+  // Follow the prop when it changes, without an effect: derive during render.
+  const [seen, setSeen] = useState(initialStatus);
+  if (initialStatus !== seen) {
+    setSeen(initialStatus);
+    setStatus(initialStatus);
+  }
 
   useEffect(() => {
     if (!liveData) return;
