@@ -1,0 +1,193 @@
+"use client";
+
+import { useId, useState } from "react";
+import {
+  AlertCircle,
+  Check,
+  ChevronDown,
+  ChevronRight,
+  PenLine,
+  Search,
+  X,
+} from "lucide-react";
+import type { HitlCardAction, HitlCardEvent } from "@hitl-kit/core";
+import { cn } from "./lib/utils";
+import type { DecisionSurfaceProps, HitlCardState } from "./types";
+import {
+  Card,
+  HelpLine,
+  InlineError,
+  Loader,
+  ResolvedLine,
+  btnPrimary,
+  btnQuiet,
+  focusRing,
+  motion,
+} from "./internal/ui";
+
+const VARIANT_META = {
+  search: { icon: Search, color: "text-[color:var(--accent-violet)]" },
+  review: { icon: AlertCircle, color: "text-[color:var(--accent-amber)]" },
+  write: { icon: PenLine, color: "text-[color:var(--accent-blue)]" },
+};
+
+export interface HitlCardProps extends HitlCardEvent, DecisionSurfaceProps {
+  onAction?: (action: HitlCardAction) => void;
+  /** Start expanded. Off by default so a thread of cards stays scannable. */
+  defaultExpanded?: boolean;
+}
+
+/**
+ * Interrupt Card. The agent stopped at a boundary and is asking the human to
+ * confirm before it continues. Collapsed it is one line; expanded it shows
+ * the steps so far, an optional note field, and the decision.
+ */
+export function HitlCard({
+  variant,
+  title,
+  subtitle,
+  steps,
+  runLabel,
+  editPlaceholder,
+  onAction,
+  defaultExpanded,
+  busy,
+  error,
+  help,
+  allowUndo = true,
+  autoFocus,
+  className,
+}: HitlCardProps) {
+  const [state, setState] = useState<HitlCardState>(defaultExpanded ? "expanded" : "idle");
+  const [note, setNote] = useState("");
+  const uid = useId();
+  const panelId = `hitl-card-${uid}-panel`;
+
+  const meta = VARIANT_META[variant];
+  const Icon = meta.icon;
+
+  const undo = allowUndo
+    ? () => {
+        setState("expanded");
+        onAction?.({ kind: "undo" });
+      }
+    : undefined;
+
+  const stepsView = (
+    <ol className="space-y-1.5 px-3 py-2">
+      {steps.map((step, i) => (
+        <li key={i} className="flex items-center gap-2">
+          <span
+            className={cn(
+              "flex h-4 w-4 shrink-0 items-center justify-center rounded-full border text-[11px]",
+              step.done
+                ? "border-transparent bg-muted text-foreground"
+                : "border-border text-muted-foreground",
+            )}
+            aria-hidden="true"
+          >
+            {step.done ? <Check className="h-2.5 w-2.5" /> : i + 1}
+          </span>
+          <span className={step.done ? "text-muted-foreground line-through" : "text-foreground"}>
+            {step.label}
+          </span>
+          <span className="sr-only">{step.done ? ", done" : ", pending"}</span>
+        </li>
+      ))}
+    </ol>
+  );
+
+  if (state === "dismissed" || state === "confirmed") {
+    return (
+      <ResolvedLine
+        resolution={state === "confirmed" ? "approved" : "dismissed"}
+        subject={state === "confirmed" ? runLabel : title}
+        onUndo={undo}
+        details={stepsView}
+        detailsId={`${panelId}-details`}
+        className={className}
+      />
+    );
+  }
+
+  const isExpanded = state === "expanded";
+
+  return (
+    <Card label={`Interrupt card: ${title}`} className={className}>
+      <button
+        type="button"
+        onClick={() => setState((s) => (s === "expanded" ? "idle" : "expanded"))}
+        aria-expanded={isExpanded}
+        aria-controls={panelId}
+        className={cn("flex w-full items-center gap-2 rounded-xl px-3 py-2", focusRing)}
+      >
+        <Icon className={cn("h-3.5 w-3.5 shrink-0", meta.color)} aria-hidden="true" />
+        <span className="min-w-0 flex-1 text-left">
+          <span className="text-[13px] font-medium text-foreground">{title}</span>
+          <span className="ml-2 text-muted-foreground">{subtitle}</span>
+        </span>
+        {isExpanded ? (
+          <ChevronDown className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+        ) : (
+          <ChevronRight className="h-3.5 w-3.5 shrink-0 text-muted-foreground" aria-hidden="true" />
+        )}
+      </button>
+
+      {isExpanded && (
+        <div id={panelId} className="border-t border-border">
+          <HelpLine text={help} />
+          {stepsView}
+
+          {editPlaceholder && (
+            <div className="px-3 pb-2">
+              <label className="sr-only" htmlFor={`${panelId}-note`}>
+                Note
+              </label>
+              <textarea
+                id={`${panelId}-note`}
+                className={cn(
+                  "w-full resize-none rounded-md border border-border bg-background px-2.5 py-2 text-xs placeholder:text-muted-foreground",
+                  "focus:outline-none focus:ring-1 focus:ring-ring",
+                )}
+                rows={2}
+                placeholder={editPlaceholder}
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+              />
+            </div>
+          )}
+
+          <InlineError message={error} onRetry={onAction && (() => onAction({ kind: "retry" }))} />
+
+          <div className="flex items-center gap-2 border-t border-border px-3 py-2" aria-busy={busy || undefined}>
+            <button
+              type="button"
+              autoFocus={autoFocus}
+              disabled={busy}
+              onClick={() => {
+                setState("confirmed");
+                onAction?.({ kind: "approve", note: note.trim() || undefined });
+              }}
+              className={btnPrimary}
+            >
+              {busy ? <Loader /> : <Check className="h-3 w-3" aria-hidden="true" />}
+              {runLabel}
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                setState("dismissed");
+                onAction?.({ kind: "dismiss" });
+              }}
+              className={cn(btnQuiet, "ml-auto", motion)}
+            >
+              <X className="h-3 w-3" aria-hidden="true" />
+              Not now
+            </button>
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+}

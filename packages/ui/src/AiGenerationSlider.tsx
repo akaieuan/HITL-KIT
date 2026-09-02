@@ -1,0 +1,211 @@
+"use client";
+
+import { useRef, type KeyboardEvent } from "react";
+import type { AiGenerationScaleEvent, ScaleAction } from "@hitl-kit/core";
+import { cn } from "./lib/utils";
+import { focusRing, motion } from "./internal/ui";
+import {
+  AI_GENERATION_LEVELS,
+  AI_GENERATION_MAX,
+  AI_GENERATION_SPECTRUM,
+  aiLevelMeaning,
+  aiLevelName,
+  clampAiLevel,
+} from "./ai-generation-levels";
+
+/**
+ * The track is a thick pill and the thumb rides inside it, so the run of
+ * stop positions is inset by half the thumb width at each end.
+ */
+const TRACK = 28;
+const THUMB_W = 22;
+const THUMB_H = 24;
+const INSET = THUMB_W / 2 + 2;
+
+export interface AiGenerationSliderProps
+  extends Partial<Omit<AiGenerationScaleEvent, "value" | "labels">>,
+    Pick<AiGenerationScaleEvent, "value"> {
+  labels?: readonly string[];
+  /** Omit for a read-only readout. */
+  onAction?: (action: ScaleAction) => void;
+  /** Optional right-hand micro-copy in the header row. */
+  hint?: string;
+  ariaLabel?: string;
+  /** Hide the one-line meaning under the readout. */
+  hideMeaning?: boolean;
+  className?: string;
+}
+
+/**
+ * The slider. A readout that says the level and what it means, a thick track
+ * that fills with the human-to-AI spectrum as far as the thumb, and the two
+ * ends named underneath. Drag snaps to the five stops; arrows step, Home/End
+ * jump; the end names are buttons too.
+ */
+export function AiGenerationSlider({
+  value,
+  onAction,
+  labels = AI_GENERATION_LEVELS,
+  hint,
+  ariaLabel = "AI generation level",
+  hideMeaning = false,
+  className,
+}: AiGenerationSliderProps) {
+  const interactive = typeof onAction === "function";
+  const v = clampAiLevel(value);
+  const name = aiLevelName(v, labels);
+  const pos = v / AI_GENERATION_MAX; // 0..1 along the inset rail
+
+  const railRef = useRef<HTMLDivElement>(null);
+  const dragging = useRef(false);
+
+  const commit = (next: number) => {
+    const clamped = clampAiLevel(next);
+    if (clamped !== v) onAction?.({ kind: "change", value: clamped });
+  };
+
+  const fromClientX = (clientX: number) => {
+    const rect = railRef.current?.getBoundingClientRect();
+    if (!rect || rect.width <= 0) return v;
+    return clampAiLevel(((clientX - rect.left) / rect.width) * AI_GENERATION_MAX);
+  };
+
+  const onKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (!interactive) return;
+    let next: number;
+    switch (e.key) {
+      case "ArrowLeft":
+      case "ArrowDown":
+        next = v - 1;
+        break;
+      case "ArrowRight":
+      case "ArrowUp":
+        next = v + 1;
+        break;
+      case "Home":
+        next = 0;
+        break;
+      case "End":
+        next = AI_GENERATION_MAX;
+        break;
+      default:
+        return;
+    }
+    e.preventDefault();
+    commit(next);
+  };
+
+  return (
+    <div className={cn("w-full select-none", className)}>
+      {/* Readout */}
+      <div className="flex items-baseline justify-between gap-3">
+        <div className="min-w-0">
+          <span className="text-[15px] font-semibold tracking-[-0.01em] text-foreground">{name}</span>
+          <span className="ml-2 text-[11px] text-muted-foreground">
+            {v + 1} of {AI_GENERATION_LEVELS.length}
+          </span>
+        </div>
+        {hint ? <span className="min-w-0 shrink truncate text-[11px] text-muted-foreground">{hint}</span> : null}
+      </div>
+      {!hideMeaning && (
+        <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground" aria-live="polite">
+          {aiLevelMeaning(v)}
+        </p>
+      )}
+
+      {/* Track */}
+      <div
+        role="slider"
+        tabIndex={interactive ? 0 : -1}
+        aria-label={ariaLabel}
+        aria-valuemin={0}
+        aria-valuemax={AI_GENERATION_MAX}
+        aria-valuenow={v}
+        aria-valuetext={name}
+        aria-readonly={interactive ? undefined : true}
+        onKeyDown={onKeyDown}
+        onPointerDown={(e) => {
+          if (!interactive) return;
+          e.currentTarget.setPointerCapture(e.pointerId);
+          e.currentTarget.focus();
+          dragging.current = true;
+          commit(fromClientX(e.clientX));
+        }}
+        onPointerMove={(e) => {
+          if (!interactive || !dragging.current) return;
+          commit(fromClientX(e.clientX));
+        }}
+        onPointerUp={(e) => {
+          dragging.current = false;
+          if (e.currentTarget.hasPointerCapture(e.pointerId)) e.currentTarget.releasePointerCapture(e.pointerId);
+        }}
+        onPointerCancel={() => {
+          dragging.current = false;
+        }}
+        className={cn(
+          "group relative mt-3 w-full overflow-hidden rounded-full bg-muted outline-none",
+          interactive ? "cursor-pointer touch-none" : "cursor-default",
+          focusRing,
+        )}
+        style={{ height: TRACK }}
+      >
+        {/* The fill reveals the spectrum as far as the thumb. */}
+        <span
+          aria-hidden
+          className="absolute inset-y-0 left-0 rounded-full transition-[width] duration-150 ease-out motion-reduce:transition-none"
+          style={{
+            width: `calc(${INSET}px + (100% - ${2 * INSET}px) * ${pos})`,
+            background: AI_GENERATION_SPECTRUM,
+            backgroundSize: `calc(100% / ${Math.max(pos, 0.02)}) 100%`,
+          }}
+        />
+        <div ref={railRef} aria-hidden className="absolute inset-y-0" style={{ left: INSET, right: INSET }}>
+          {AI_GENERATION_LEVELS.map((_, i) => (
+            <span
+              key={i}
+              style={{ left: `${(i / AI_GENERATION_MAX) * 100}%` }}
+              className={cn(
+                "absolute top-1/2 h-1 w-1 -translate-x-1/2 -translate-y-1/2 rounded-full",
+                i <= v ? "bg-black/35" : "bg-muted-foreground/50",
+              )}
+            />
+          ))}
+          {/* No transition on `left`: the thumb must track the pointer exactly. */}
+          <span
+            style={{ left: `${pos * 100}%`, width: THUMB_W, height: THUMB_H }}
+            className={cn(
+              "absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-[7px] bg-white shadow-[0_1px_2px_rgba(0,0,0,0.4)]",
+              interactive && "group-active:scale-[1.04]",
+              motion,
+            )}
+          />
+        </div>
+      </div>
+
+      {/* The axis: the two ends only. The readout above names the stop. */}
+      <div aria-hidden className="mt-2 flex items-baseline justify-between gap-2 text-[11px] leading-none">
+        {[0, AI_GENERATION_MAX].map((i) =>
+          interactive ? (
+            <button
+              key={i}
+              type="button"
+              tabIndex={-1}
+              onClick={() => commit(i)}
+              className={cn(
+                "rounded hover:text-foreground",
+                i === v ? "font-medium text-foreground" : "text-muted-foreground",
+                motion,
+              )}
+            >
+              {labels[i]}
+            </button>
+          ) : (
+            <span key={i} className={i === v ? "font-medium text-foreground" : "text-muted-foreground"}>
+              {labels[i]}
+            </span>
+          ),
+        )}
+      </div>
+    </div>
+  );
+}

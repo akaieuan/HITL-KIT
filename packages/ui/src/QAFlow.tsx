@@ -1,0 +1,228 @@
+"use client";
+
+import { useId, useState } from "react";
+import { Check } from "lucide-react";
+import type { QAAnswer, QAFlowAction, QAFlowEvent, QAQuestion } from "@hitl-kit/core";
+import { cn } from "./lib/utils";
+import type { DecisionSurfaceProps } from "./types";
+import { HelpLine, InlineError, Loader, ResolvedLine, focusRing, motion } from "./internal/ui";
+
+export type { QAAnswer, QAQuestion };
+
+export interface QAFlowProps
+  extends Partial<Omit<QAFlowEvent, "questions">>,
+    Pick<QAFlowEvent, "questions">,
+    Omit<DecisionSurfaceProps, "allowAbstain"> {
+  onAction?: (action: QAFlowAction) => void;
+}
+
+const OPTION =
+  "flex w-full items-center gap-2 rounded-md border px-3 py-2 text-xs text-left";
+const OPTION_ON = "border-[color:var(--accent-blue)]/50 bg-[color:var(--accent-blue)]/5 text-foreground";
+const OPTION_OFF = "border-border text-muted-foreground hover:bg-muted";
+
+/**
+ * QA Flow. Single choice, multi-select and free text, then one submit.
+ * After submit the answers stay visible and can be reopened for editing.
+ */
+export function QAFlow({
+  questions,
+  submitLabel = "Continue",
+  onAction,
+  busy,
+  error,
+  help,
+  allowUndo = true,
+  autoFocus,
+  className,
+}: QAFlowProps) {
+  const [single, setSingle] = useState<Record<string, string>>({});
+  const [multi, setMulti] = useState<Record<string, Set<string>>>({});
+  const [text, setText] = useState<Record<string, string>>({});
+  const [done, setDone] = useState(false);
+  const uid = useId();
+
+  const toggleMulti = (qid: string, value: string) =>
+    setMulti((p) => {
+      const set = new Set(p[qid] ?? []);
+      if (set.has(value)) set.delete(value);
+      else set.add(value);
+      return { ...p, [qid]: set };
+    });
+
+  const answers = (): QAAnswer[] =>
+    questions.map((q) => {
+      if (q.kind === "single") return { id: q.id, kind: "single", value: single[q.id] ?? "" };
+      if (q.kind === "multi") return { id: q.id, kind: "multi", value: Array.from(multi[q.id] ?? []) };
+      return { id: q.id, kind: "text", value: text[q.id] ?? "" };
+    });
+
+  const submit = () => {
+    onAction?.({ kind: "submit", answers: answers() });
+    setDone(true);
+  };
+
+  if (done) {
+    const given = answers();
+    return (
+      <ResolvedLine
+        resolution="approved"
+        subject="Responses submitted"
+        onUndo={
+          allowUndo
+            ? () => {
+                setDone(false);
+                onAction?.({ kind: "reset" });
+              }
+            : undefined
+        }
+        detailsId={`qa-${uid}-answers`}
+        details={
+          <dl className="space-y-1.5 px-3 py-2">
+            {questions.map((q, i) => {
+              const a = given[i];
+              const v = a.kind === "multi" ? a.value.join(", ") : a.value;
+              return (
+                <div key={q.id}>
+                  <dt className="text-[11px] text-muted-foreground">{q.prompt}</dt>
+                  <dd className="m-0 text-foreground">{v || <span className="italic text-muted-foreground">no answer</span>}</dd>
+                </div>
+              );
+            })}
+          </dl>
+        }
+        className={className}
+      />
+    );
+  }
+
+  return (
+    <form
+      className={cn("space-y-4", className)}
+      aria-busy={busy || undefined}
+      onSubmit={(e) => {
+        e.preventDefault();
+        if (!busy) submit();
+      }}
+    >
+      {help && (
+        <div className="-mx-3 -mt-2">
+          <HelpLine text={help} />
+        </div>
+      )}
+
+      {questions.map((q) => (
+        <fieldset key={q.id} className="m-0 border-0 p-0">
+          <legend className="mb-1.5 text-xs font-medium text-foreground">{q.prompt}</legend>
+
+          {q.kind === "single" && (
+            <div className="space-y-1" role="radiogroup" aria-label={q.prompt}>
+              {q.options.map((o) => {
+                const active = single[q.id] === o;
+                return (
+                  <button
+                    type="button"
+                    key={o}
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => setSingle((p) => ({ ...p, [q.id]: o }))}
+                    className={cn(OPTION, motion, focusRing, active ? OPTION_ON : OPTION_OFF)}
+                  >
+                    <span
+                      className={cn(
+                        "h-3 w-3 shrink-0 rounded-full border",
+                        active ? "border-[color:var(--accent-blue)] bg-[color:var(--accent-blue)]" : "border-muted-foreground",
+                      )}
+                      aria-hidden="true"
+                    />
+                    {o}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {q.kind === "multi" && (
+            <div className="space-y-1" role="group" aria-label={q.prompt}>
+              {q.options.map((o) => {
+                const active = multi[q.id]?.has(o) ?? false;
+                return (
+                  <button
+                    type="button"
+                    key={o}
+                    role="checkbox"
+                    aria-checked={active}
+                    onClick={() => toggleMulti(q.id, o)}
+                    className={cn(OPTION, motion, focusRing, active ? OPTION_ON : OPTION_OFF)}
+                  >
+                    <span
+                      className={cn(
+                        "flex h-3 w-3 shrink-0 items-center justify-center rounded",
+                        active ? "bg-[color:var(--accent-blue)]" : "border border-muted-foreground",
+                      )}
+                      aria-hidden="true"
+                    >
+                      {active && <Check className="h-2 w-2 text-black" />}
+                    </span>
+                    {o}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {q.kind === "text" && (
+            <textarea
+              aria-label={q.prompt}
+              className="w-full resize-none rounded-lg border border-border bg-background/40 px-3 py-2 text-xs outline-none placeholder:text-muted-foreground focus:ring-1 focus:ring-[color:var(--accent-blue)]"
+              rows={2}
+              placeholder={q.placeholder ?? ""}
+              value={text[q.id] ?? ""}
+              onChange={(e) => setText((p) => ({ ...p, [q.id]: e.target.value }))}
+            />
+          )}
+        </fieldset>
+      ))}
+
+      {error && (
+        <div className="rounded-lg border border-[color:var(--accent-rose)]/40">
+          <InlineError message={error} />
+        </div>
+      )}
+
+      <button
+        type="submit"
+        autoFocus={autoFocus}
+        disabled={busy}
+        className={cn(
+          "flex w-full items-center justify-center gap-1.5 rounded-lg bg-foreground py-2 text-xs font-medium text-background",
+          "hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50 transition-opacity duration-150 ease-out motion-reduce:transition-none",
+          focusRing,
+        )}
+      >
+        {busy && <Loader />}
+        {submitLabel}
+      </button>
+    </form>
+  );
+}
+
+export const DEMO_QA: QAFlowEvent = {
+  kind: "qa.flow",
+  id: "demo-qa",
+  questions: [
+    {
+      id: "mech",
+      kind: "single",
+      prompt: "Preferred mechanism?",
+      options: ["Carbon pricing", "Regulation", "Voluntary markets", "Technology mandates"],
+    },
+    {
+      id: "challenges",
+      kind: "multi",
+      prompt: "Implementation challenges?",
+      options: ["Stakeholder alignment", "Monitoring & verification", "Political feasibility", "Cost-effectiveness"],
+    },
+    { id: "notes", kind: "text", prompt: "Other notes", placeholder: "Any additional context…" },
+  ],
+};

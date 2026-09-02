@@ -81,7 +81,7 @@ pnpm add @hitl-kit/core @hitl-kit/react
 - **Schemas** → [@hitl-kit/core](../core)
 - **Components** → install via shadcn CLI from [hitlkit.dev/registry](https://www.hitlkit.dev/registry)
 - **Adapters** → `@hitl-kit/langgraph`, `@hitl-kit/ai-sdk`, `@hitl-kit/mcp`
-- **15 primitive event kinds** since v0.6a — full list in [`@hitl-kit/core`](../core)
+- **16 primitive event kinds** since v0.6b (`evidence.pointer` landed 2026-08-11) — full list in [`@hitl-kit/core`](../core)
 - **Repo** → [github.com/akaieuan/HITL-KIT](https://github.com/akaieuan/HITL-KIT)
 
 ## License

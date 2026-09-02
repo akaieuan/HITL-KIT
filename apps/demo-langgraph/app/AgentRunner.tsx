@@ -1,35 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { HitlEventRenderer, createRegistry } from "@hitl-kit/react";
 import type { HitlInterruptPayload } from "@hitl-kit/langgraph";
-import { HitlCard } from "@/components/hitl/HitlCard";
-
-/**
- * Registry binds one HitlEvent kind ("hitl.card") to the installed
- * HitlCard primitive. A real app would register every kind it expects
- * the agent to emit; this demo only uses one.
- */
-function useRegistry(onResume: (approved: boolean) => void) {
-  return createRegistry({
-    "hitl.card": (event) => (
-      <HitlCard
-        config={{
-          id: event.id ?? "default",
-          kind: event.variant,
-          title: event.title,
-          subtitle: event.subtitle,
-          steps: event.steps,
-          runLabel: event.runLabel,
-          editPlaceholder: event.editPlaceholder,
-          openTab: "human",
-        }}
-        onConfirm={() => onResume(true)}
-        onDismiss={() => onResume(false)}
-      />
-    ),
-  });
-}
+import { HitlCard } from "@hitl-kit/ui";
 
 type Phase = "idle" | "running" | "awaiting" | "resuming" | "done";
 
@@ -109,7 +83,32 @@ export function AgentRunner() {
     setError(null);
   };
 
-  const registry = useRegistry(resume);
+  /**
+   * The registry binds "hitl.card" to the primitive. The renderer spreads the
+   * validated event onto it, so the only code here is what to do with the
+   * human's answer: approve resumes the graph, dismiss resumes it with a no.
+   */
+  const registry = useMemo(
+    () =>
+      createRegistry({
+        "hitl.card": (event) => (
+          <HitlCard
+            {...event}
+            defaultExpanded
+            busy={phase === "resuming"}
+            error={phase === "awaiting" ? (error ?? undefined) : undefined}
+            help="The agent stopped here. It will not continue until you decide."
+            onAction={(a) => {
+              if (a.kind === "approve") void resume(true);
+              else if (a.kind === "dismiss") void resume(false);
+              else if (a.kind === "retry") void resume(true);
+            }}
+          />
+        ),
+      }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [phase, error, threadId],
+  );
 
   return (
     <div className="mx-auto max-w-2xl px-6 py-16">
@@ -123,6 +122,7 @@ export function AgentRunner() {
         LangGraph flow. The agent reviews a citation, hits{" "}
         <code className="rounded bg-muted/60 px-1 py-0.5 font-mono text-[11px]">interrupt()</code>,
         and the UI below renders a <code className="rounded bg-muted/60 px-1 py-0.5 font-mono text-[11px]">HitlCard</code>{" "}
+        from <code className="rounded bg-muted/60 px-1 py-0.5 font-mono text-[11px]">@hitl-kit/ui</code>{" "}
         via <code className="rounded bg-muted/60 px-1 py-0.5 font-mono text-[11px]">&lt;HitlEventRenderer /&gt;</code>.
         Confirm or dismiss, and the graph resumes with your decision.
       </p>
@@ -153,13 +153,13 @@ export function AgentRunner() {
         )}
       </div>
 
-      {error && (
+      {error && phase !== "awaiting" && (
         <p className="mt-6 rounded-lg border border-[color:var(--accent-rose)]/30 bg-[color:var(--accent-rose)]/10 p-3 text-sm text-[color:var(--accent-rose)]">
           {error}
         </p>
       )}
 
-      {pending && phase === "awaiting" && (
+      {pending && (phase === "awaiting" || phase === "resuming") && (
         <div className="mt-10">
           <p className="label mb-2">Interrupt received · awaiting decision</p>
           <HitlEventRenderer event={pending.event} registry={registry} />

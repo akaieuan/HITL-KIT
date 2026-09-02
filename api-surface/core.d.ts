@@ -1874,4 +1874,145 @@ type HitlEvent = z.infer<typeof HitlEventSchema>;
 type HitlEventKind = HitlEvent["kind"];
 declare const HITL_EVENT_KINDS: readonly ["hitl.card", "subagent.status", "trace.mini", "scale.ai_generation", "chips.context", "qa.flow", "agent.writing", "agent.research", "batch.queue", "result.search", "approval.binary", "result.diff", "result.citation", "plan.editable", "tool.call", "evidence.pointer"];
 
-export { AUTHORIZING_STATES, type AgentStatus, AgentStatusSchema, type AiGenerationScaleEvent, AiGenerationScaleEventSchema, type ApprovalState, ApprovalStateSchema, type ApproveRejectEvent, ApproveRejectEventSchema, type BatchQueueEvent, BatchQueueEventSchema, type BatchQueueItem, BatchQueueItemSchema, type CitationResultEvent, CitationResultEventSchema, type CitationSource, CitationSourceSchema, type ContextChipItem, ContextChipItemSchema, type ContextChipsEvent, ContextChipsEventSchema, type DiffHunk, DiffHunkSchema, type DiffResultEvent, DiffResultEventSchema, type EditablePlanEvent, EditablePlanEventSchema, type EvidenceItem, EvidenceItemSchema, type EvidenceLocator, EvidenceLocatorSchema, type EvidencePointerEvent, EvidencePointerEventSchema, HITL_EVENT_KINDS, type HitlCardEvent, HitlCardEventSchema, type HitlEvent, type HitlEventKind, HitlEventSchema, type MiniTraceEvent, MiniTraceEventSchema, type PlanStep, PlanStepSchema, type QAFlowEvent, QAFlowEventSchema, type QAQuestion, QAQuestionSchema, type ResearchAgentEvent, ResearchAgentEventSchema, SafeUrlSchema, type SearchResultEvent, SearchResultEventSchema, type SubagentStatusEvent, SubagentStatusEventSchema, type ToolCallPreviewEvent, ToolCallPreviewEventSchema, type ToolCallSignals, ToolCallSignalsSchema, type TraceStep, TraceStepSchema, type WritingAgentEvent, WritingAgentEventSchema, isAuthorized };
+/**
+ * What the human did, as the wire format that flows back to the agent.
+ *
+ * Every primitive reports through one `onAction(action)` callback and every
+ * action is a discriminated object on `kind`. The vocabulary is deliberately
+ * small and shared: a tool call, a diff, a citation and a binary row all say
+ * `approve` / `reject` / `abstain` / `undo`, whatever label the button shows,
+ * so a consumer switching on `action.kind` never has to learn a primitive's
+ * private verbs. Labels are presentation; kinds are protocol.
+ *
+ * `abstain` exists because "I cannot tell" is not "no" (see ApprovalState).
+ * `undo` exists because a decision surface without an exit is a trap: the
+ * human must be able to reverse a click within the same surface, and the
+ * consumer must be told so it can reverse the resume.
+ */
+/** The three-way answer every gated decision offers. */
+type DecisionKind = "approve" | "reject" | "abstain";
+/** Shared across every binary decision surface. */
+type ApprovalAction = {
+    kind: "approve";
+} | {
+    kind: "reject";
+} | {
+    kind: "abstain";
+} | {
+    kind: "undo";
+};
+/** Offered by every surface that can show an error: try the last thing again. */
+type RetryAction = {
+    kind: "retry";
+};
+/** Interrupt Card: confirm carries the optional note the human typed. */
+type HitlCardAction = {
+    kind: "approve";
+    note?: string;
+} | {
+    kind: "dismiss";
+} | {
+    kind: "undo";
+} | RetryAction;
+/** Tool Call Preview. */
+type ToolCallAction = ApprovalAction | RetryAction;
+/** Diff Result: `approve` applies the edit. */
+type DiffAction = ApprovalAction | RetryAction;
+/** Citation Result: `approve` verifies the citation. */
+type CitationAction = ApprovalAction | RetryAction;
+/** Approve / Reject Row. */
+type ApproveRejectAction = ApprovalAction;
+/** Editable Plan: submit carries the steps as the human left them. */
+type EditablePlanAction = {
+    kind: "submit";
+    steps: PlanStep[];
+} | {
+    kind: "cancel";
+} | {
+    kind: "undo";
+} | RetryAction;
+/** One answer per QA question, discriminated the same way the question is. */
+type QAAnswer = {
+    id: string;
+    kind: "single";
+    value: string;
+} | {
+    id: string;
+    kind: "multi";
+    value: string[];
+} | {
+    id: string;
+    kind: "text";
+    value: string;
+};
+/** QA Flow. */
+type QAFlowAction = {
+    kind: "submit";
+    answers: QAAnswer[];
+} | {
+    kind: "reset";
+};
+/** Batch Queue: one event per item decided, one when the queue resolves. */
+type BatchQueueAction = {
+    kind: "decide";
+    id: string;
+    decision: "approve" | "reject";
+} | {
+    kind: "undo";
+    id: string;
+} | {
+    kind: "complete";
+    decisions: Record<string, "approve" | "reject">;
+} | {
+    kind: "reset";
+};
+/** AI Generation Scale, Slider and Badge. */
+type ScaleAction = {
+    kind: "change";
+    value: number;
+};
+/** Context Chips. */
+type ContextChipsAction = {
+    kind: "remove";
+    id: string;
+};
+/** MiniTrace: a step opened or closed. */
+type TraceAction = {
+    kind: "toggle";
+    index: number;
+    expanded: boolean;
+};
+/** Research Agent. */
+type ResearchAgentAction = {
+    kind: "mode";
+    mode: "create" | "followup" | "readurl";
+};
+/** Writing Agent: `open` is the human asking to see the draft. */
+type WritingAgentAction = {
+    kind: "open";
+} | {
+    kind: "status";
+    status: AgentStatus;
+};
+/** Evidence Pointer: open a source at its locator, or dispute the claim. */
+type EvidencePointerAction = {
+    kind: "open";
+    sourceId: string;
+} | {
+    kind: "approve";
+} | {
+    kind: "reject";
+} | {
+    kind: "abstain";
+} | {
+    kind: "undo";
+} | RetryAction;
+/** Every action any HITL Kit primitive can report. */
+type HitlAction = HitlCardAction | ApprovalAction | EditablePlanAction | QAFlowAction | BatchQueueAction | ScaleAction | ContextChipsAction | TraceAction | ResearchAgentAction | WritingAgentAction | EvidencePointerAction | RetryAction;
+type HitlActionKind = HitlAction["kind"];
+/** Every action kind, for exhaustive switches and documentation. */
+declare const HITL_ACTION_KINDS: readonly ["approve", "reject", "abstain", "undo", "dismiss", "submit", "cancel", "reset", "decide", "complete", "change", "remove", "toggle", "mode", "open", "status", "retry"];
+/** True when the action authorizes the gated thing to proceed. */
+declare function isApproval(action: HitlAction): boolean;
+
+export { AUTHORIZING_STATES, type AgentStatus, AgentStatusSchema, type AiGenerationScaleEvent, AiGenerationScaleEventSchema, type ApprovalAction, type ApprovalState, ApprovalStateSchema, type ApproveRejectAction, type ApproveRejectEvent, ApproveRejectEventSchema, type BatchQueueAction, type BatchQueueEvent, BatchQueueEventSchema, type BatchQueueItem, BatchQueueItemSchema, type CitationAction, type CitationResultEvent, CitationResultEventSchema, type CitationSource, CitationSourceSchema, type ContextChipItem, ContextChipItemSchema, type ContextChipsAction, type ContextChipsEvent, ContextChipsEventSchema, type DecisionKind, type DiffAction, type DiffHunk, DiffHunkSchema, type DiffResultEvent, DiffResultEventSchema, type EditablePlanAction, type EditablePlanEvent, EditablePlanEventSchema, type EvidenceItem, EvidenceItemSchema, type EvidenceLocator, EvidenceLocatorSchema, type EvidencePointerAction, type EvidencePointerEvent, EvidencePointerEventSchema, HITL_ACTION_KINDS, HITL_EVENT_KINDS, type HitlAction, type HitlActionKind, type HitlCardAction, type HitlCardEvent, HitlCardEventSchema, type HitlEvent, type HitlEventKind, HitlEventSchema, type MiniTraceEvent, MiniTraceEventSchema, type PlanStep, PlanStepSchema, type QAAnswer, type QAFlowAction, type QAFlowEvent, QAFlowEventSchema, type QAQuestion, QAQuestionSchema, type ResearchAgentAction, type ResearchAgentEvent, ResearchAgentEventSchema, type RetryAction, SafeUrlSchema, type ScaleAction, type SearchResultEvent, SearchResultEventSchema, type SubagentStatusEvent, SubagentStatusEventSchema, type ToolCallAction, type ToolCallPreviewEvent, ToolCallPreviewEventSchema, type ToolCallSignals, ToolCallSignalsSchema, type TraceAction, type TraceStep, TraceStepSchema, type WritingAgentAction, type WritingAgentEvent, WritingAgentEventSchema, isApproval, isAuthorized };

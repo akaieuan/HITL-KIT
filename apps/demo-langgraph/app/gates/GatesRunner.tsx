@@ -10,8 +10,7 @@ import {
 } from "@hitl-kit/core";
 import { confidenceGate, costGate } from "@hitl-kit/gates";
 import { withGates } from "@hitl-kit/ai-sdk";
-import { HitlCard } from "@/components/hitl/HitlCard";
-import { ToolCallPreview } from "@/components/hitl/ToolCallPreview";
+import { HitlCard, ToolCallPreview } from "@hitl-kit/ui";
 
 /**
  * The base "happy path" tool result the agent would produce. We wrap a
@@ -64,20 +63,7 @@ export function GatesRunner() {
     () =>
       createRegistry({
         "tool.call": (event) => <ToolCallPreview {...event} />,
-        "hitl.card": (event) => (
-          <HitlCard
-            config={{
-              id: event.id ?? "default",
-              kind: event.variant,
-              title: event.title,
-              subtitle: event.subtitle,
-              steps: event.steps,
-              runLabel: event.runLabel,
-              editPlaceholder: event.editPlaceholder,
-              openTab: "human",
-            }}
-          />
-        ),
+        "hitl.card": (event) => <HitlCard {...event} defaultExpanded />,
       }),
     [],
   );

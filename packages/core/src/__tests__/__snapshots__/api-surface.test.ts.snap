@@ -19,6 +19,7 @@ exports[`@hitl-kit/core public API > exports a stable, sorted set of runtime nam
   "EvidenceItemSchema",
   "EvidenceLocatorSchema",
   "EvidencePointerEventSchema",
+  "HITL_ACTION_KINDS",
   "HITL_EVENT_KINDS",
   "HitlCardEventSchema",
   "HitlEventSchema",
@@ -34,6 +35,7 @@ exports[`@hitl-kit/core public API > exports a stable, sorted set of runtime nam
   "ToolCallSignalsSchema",
   "TraceStepSchema",
   "WritingAgentEventSchema",
+  "isApproval",
   "isAuthorized",
   "z",
 ]
