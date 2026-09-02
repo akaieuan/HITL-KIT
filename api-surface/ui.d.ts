@@ -226,10 +226,10 @@ interface AiGenerationSliderProps extends Partial<Omit<AiGenerationScaleEvent, "
     className?: string;
 }
 /**
- * The slider. A readout that says the level and what it means, a track that
- * fills with the human-to-AI spectrum as far as the thumb, and the five stop
- * names underneath. Drag snaps to the five stops; arrows step, Home/End jump;
- * the stop names are buttons too.
+ * The slider. A readout that says the level and what it means, a thick track
+ * that fills with the human-to-AI spectrum as far as the thumb, and the two
+ * ends named underneath. Drag snaps to the five stops; arrows step, Home/End
+ * jump; the end names are buttons too.
  */
 declare function AiGenerationSlider({ value, onAction, labels, hint, ariaLabel, hideMeaning, className, }: AiGenerationSliderProps): react_jsx_runtime.JSX.Element;
 
@@ -242,10 +242,10 @@ interface AiGenerationMeterProps extends Partial<Omit<AiGenerationScaleEvent, "v
     className?: string;
 }
 /**
- * At-a-glance provenance: one short track filled to the current level with
- * the spectrum, plus the level name. Deliberately read-only and a single
- * `role="img"`, so a table of fifty rows does not add fifty tab stops.
- * No "use client": no state, no handlers.
+ * At-a-glance provenance: the whole spectrum shown faintly, lit as far as
+ * the current level, plus the level name. Deliberately read-only and a
+ * single `role="img"`, so a table of fifty rows does not add fifty tab
+ * stops. No "use client": no state, no handlers.
  */
 declare function AiGenerationMeter({ value, labels, compact, ariaLabel, className, }: AiGenerationMeterProps): react_jsx_runtime.JSX.Element;
 
@@ -257,9 +257,9 @@ interface AiGenerationBadgeProps extends Partial<Omit<AiGenerationScaleEvent, "v
     className?: string;
 }
 /**
- * The densest form: one pill with a short filled track and the level name.
- * Read-only it is a single `role="img"`. Given `onAction` it becomes a
- * labelled group with two steppers and a polite live region.
+ * The densest form: a pill tinted with the level's colour, a solid dot, and
+ * the level name. Read-only it is a single `role="img"`. Given `onAction` it
+ * becomes a labelled group with two steppers and a polite live region.
  */
 declare function AiGenerationBadge({ value, onAction, labels, ariaLabel, className, }: AiGenerationBadgeProps): react_jsx_runtime.JSX.Element;
 
@@ -292,6 +292,8 @@ declare const AI_GENERATION_MAX: number;
  * Written as literal utility strings so Tailwind's source scan picks them up.
  */
 declare const AI_GENERATION_ACCENTS: readonly ["bg-[color:var(--accent-emerald)]", "bg-[color:var(--accent-blue)]", "bg-[color:var(--accent-amber)]", "bg-[color:var(--accent-violet)]", "bg-[color:var(--accent-rose)]"];
+/** Tinted pill per level: a soft fill and a matching edge, text stays on foreground. */
+declare const AI_GENERATION_TINTS: readonly ["bg-[color:var(--accent-emerald)]/15 border-[color:var(--accent-emerald)]/40", "bg-[color:var(--accent-blue)]/15 border-[color:var(--accent-blue)]/40", "bg-[color:var(--accent-amber)]/15 border-[color:var(--accent-amber)]/40", "bg-[color:var(--accent-violet)]/15 border-[color:var(--accent-violet)]/40", "bg-[color:var(--accent-rose)]/15 border-[color:var(--accent-rose)]/40"];
 /** The whole continuum as one gradient; the fill of every track reveals it. */
 declare const AI_GENERATION_SPECTRUM = "linear-gradient(90deg, var(--accent-emerald), var(--accent-blue), var(--accent-amber), var(--accent-violet), var(--accent-rose))";
 /** Keep any incoming value inside 0…4 and integral. */
@@ -302,6 +304,8 @@ declare function aiLevelName(value: number, labels?: readonly string[]): string;
 declare function aiLevelMeaning(value: number): string;
 /** The accent utility class for a level. */
 declare function aiLevelAccent(value: number): string;
+/** The tinted-pill utility classes for a level. */
+declare function aiLevelTint(value: number): string;
 /**
  * How much of a track to fill for a level, as a percentage. Level 0 fills a
  * fifth rather than nothing, so "Human" reads as a position, not as empty.
@@ -333,4 +337,4 @@ declare const DEMO_EVIDENCE: EvidencePointerEvent;
 /** Tailwind classname merge, the shadcn idiom. Installed by the registry as `lib/utils.ts`. */
 declare function cn(...inputs: ClassValue[]): string;
 
-export { AI_GENERATION_ACCENTS, AI_GENERATION_LEVELS, AI_GENERATION_MAX, AI_GENERATION_MEANINGS, AI_GENERATION_SPECTRUM, AiGenerationBadge, type AiGenerationBadgeProps, type AiGenerationLevelName, AiGenerationMeter, type AiGenerationMeterProps, AiGenerationScale, type AiGenerationScaleProps, AiGenerationSlider, type AiGenerationSliderProps, ApproveRejectRow, type ApproveRejectRowProps, BatchQueue, type BatchQueueProps, CitationResult, type CitationResultProps, ContextChips, type ContextChipsProps, DEMO_BATCH, DEMO_CITATION, DEMO_DIFF, DEMO_EVIDENCE, DEMO_HITL_CARDS, DEMO_PLAN, DEMO_QA, DEMO_RESEARCH_AGENT, DEMO_RESEARCH_CONFIG, DEMO_SEARCH_RESULTS, DEMO_TOOL_CALL, DEMO_TRACE, DEMO_TRACE_STEPS, DEMO_WRITING_AGENT, type DecisionSurfaceProps, DiffResult, type DiffResultProps, EditablePlan, type EditablePlanProps, EvidencePointer, type EvidencePointerProps, HitlCard, type HitlCardProps, type HitlCardState, MiniTrace, type MiniTraceProps, QAFlow, type QAFlowProps, ResearchAgent, type ResearchAgentProps, STATUS_META, SearchResultCard, type SearchResultCardProps, SharedPrimitives, SubagentStatusCard, type SubagentStatusCardProps, ToolCallPreview, type ToolCallPreviewProps, WritingAgent, type WritingAgentProps, aiLevelAccent, aiLevelDescription, aiLevelFill, aiLevelMeaning, aiLevelName, clampAiLevel, cn, describeLocator };
+export { AI_GENERATION_ACCENTS, AI_GENERATION_LEVELS, AI_GENERATION_MAX, AI_GENERATION_MEANINGS, AI_GENERATION_SPECTRUM, AI_GENERATION_TINTS, AiGenerationBadge, type AiGenerationBadgeProps, type AiGenerationLevelName, AiGenerationMeter, type AiGenerationMeterProps, AiGenerationScale, type AiGenerationScaleProps, AiGenerationSlider, type AiGenerationSliderProps, ApproveRejectRow, type ApproveRejectRowProps, BatchQueue, type BatchQueueProps, CitationResult, type CitationResultProps, ContextChips, type ContextChipsProps, DEMO_BATCH, DEMO_CITATION, DEMO_DIFF, DEMO_EVIDENCE, DEMO_HITL_CARDS, DEMO_PLAN, DEMO_QA, DEMO_RESEARCH_AGENT, DEMO_RESEARCH_CONFIG, DEMO_SEARCH_RESULTS, DEMO_TOOL_CALL, DEMO_TRACE, DEMO_TRACE_STEPS, DEMO_WRITING_AGENT, type DecisionSurfaceProps, DiffResult, type DiffResultProps, EditablePlan, type EditablePlanProps, EvidencePointer, type EvidencePointerProps, HitlCard, type HitlCardProps, type HitlCardState, MiniTrace, type MiniTraceProps, QAFlow, type QAFlowProps, ResearchAgent, type ResearchAgentProps, STATUS_META, SearchResultCard, type SearchResultCardProps, SharedPrimitives, SubagentStatusCard, type SubagentStatusCardProps, ToolCallPreview, type ToolCallPreviewProps, WritingAgent, type WritingAgentProps, aiLevelAccent, aiLevelDescription, aiLevelFill, aiLevelMeaning, aiLevelName, aiLevelTint, clampAiLevel, cn, describeLocator };
