@@ -1,9 +1,10 @@
 import type { AiGenerationScaleEvent } from "@hitl-kit/core";
 import { cn } from "./lib/utils";
 import {
-  AI_GENERATION_ACCENTS,
   AI_GENERATION_LEVELS,
+  AI_GENERATION_SPECTRUM,
   aiLevelDescription,
+  aiLevelFill,
   aiLevelName,
   clampAiLevel,
 } from "./ai-generation-levels";
@@ -12,7 +13,7 @@ export interface AiGenerationMeterProps
   extends Partial<Omit<AiGenerationScaleEvent, "value" | "labels">>,
     Pick<AiGenerationScaleEvent, "value"> {
   labels?: readonly string[];
-  /** Drop the level name and keep only the segments, for very tight cells. */
+  /** Drop the level name and keep only the bar, for very tight cells. */
   compact?: boolean;
   /** Overrides the generated description, e.g. "Provenance: Collaborative, 3 of 5". */
   ariaLabel?: string;
@@ -20,9 +21,10 @@ export interface AiGenerationMeterProps
 }
 
 /**
- * At-a-glance provenance: five segments filled to the current level, plus the
- * level name. Deliberately read-only and a single `role="img"`, so a table of
- * fifty rows does not add fifty tab stops. No "use client": no state, no handlers.
+ * At-a-glance provenance: one short track filled to the current level with
+ * the spectrum, plus the level name. Deliberately read-only and a single
+ * `role="img"`, so a table of fifty rows does not add fifty tab stops.
+ * No "use client": no state, no handlers.
  */
 export function AiGenerationMeter({
   value,
@@ -32,7 +34,7 @@ export function AiGenerationMeter({
   className,
 }: AiGenerationMeterProps) {
   const v = clampAiLevel(value);
-  const accent = AI_GENERATION_ACCENTS[v];
+  const fill = aiLevelFill(v);
 
   return (
     <span
@@ -40,15 +42,14 @@ export function AiGenerationMeter({
       aria-label={ariaLabel ?? aiLevelDescription(v, labels)}
       className={cn("inline-flex h-5 max-w-full items-center gap-2 align-middle", className)}
     >
-      <span className="flex shrink-0 items-center gap-1">
-        {AI_GENERATION_LEVELS.map((_, i) => (
-          <span key={i} className={cn("h-[3px] w-4 rounded-sm", i <= v ? accent : "bg-muted")} />
-        ))}
+      <span className="relative h-1.5 w-12 shrink-0 overflow-hidden rounded-full bg-muted">
+        <span
+          className="absolute inset-y-0 left-0 rounded-full"
+          style={{ width: `${fill}%`, background: AI_GENERATION_SPECTRUM, backgroundSize: `${10000 / fill}% 100%` }}
+        />
       </span>
       {compact ? null : (
-        <span className="truncate font-mono text-[11px] leading-none text-foreground">
-          {aiLevelName(v, labels)}
-        </span>
+        <span className="truncate text-[11px] font-medium leading-none text-foreground">{aiLevelName(v, labels)}</span>
       )}
     </span>
   );
