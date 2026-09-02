@@ -10,7 +10,7 @@ Three implementations of the same primitives existed:
 
 | where | what | prop shape |
 | --- | --- | --- |
-| `akaoss/src/components/hitl/` | 19 registry primitives, the ones `npx shadcn add` installs | five take `config={}`, the rest spread; callbacks named per component (`onConfirm`, `onVerify`, `onAccept`, …) |
+| `akaoss/components/hitl/` | 19 registry primitives, the ones `npx shadcn add` installs | five take `config={}`, the rest spread; callbacks named per component (`onConfirm`, `onVerify`, `onAccept`, …) |
 | `hitl-ai2/apps/demo-langgraph/components/hitl/` | 5 copies rewritten to spread props + `onAction` | the shape `HitlEventRenderer` actually needs |
 | `hitl-ai2/_reference/hitl-ai0002/` | the Agatha-era originals | historical |
 
@@ -67,7 +67,7 @@ protocol.
    so the utility classes are scanned.
 
 **akaoss.** Until `@hitl-kit/ui` is on npm, akaoss keeps
-`src/components/hitl/` and `public/r/` as GENERATED copies produced by
+`components/hitl/` and `public/r/` as GENERATED copies produced by
 `scripts/hitl-sync.mjs` from the sibling checkout, with `pnpm hitl:check`
 failing CI on drift, the same contract as `facts.json`. The catalogue keeps
 importing `@/components/hitl/*`, so it cannot drift from what the registry

@@ -53,7 +53,7 @@ The demo consumes `@hitl-kit/ui` from the workspace, so this is the first real c
 A primitive change is not done until [akaieuan/akaOSS](https://github.com/akaieuan/akaOSS) matches it. In that repo:
 
 ```bash
-pnpm hitl:sync    # regenerate src/components/hitl, public/r, src/lib/registry-items.ts from ../hitl-ai2/packages/ui
+pnpm hitl:sync    # regenerate components/hitl, public/r, lib/registry-items.ts from ../hitl-ai2/packages/ui
 pnpm verify       # typecheck, hitl:check, facts:check, build
 ```
 
@@ -103,7 +103,7 @@ Releases are tag-triggered with npm Trusted Publishing (`.github/workflows/relea
 
 ## Anti-patterns
 
-- **Editing a primitive anywhere but `packages/ui/src`**: the site's `src/components/hitl/` and `public/r/` are generated and drift-checked. Your edit will be overwritten.
+- **Editing a primitive anywhere but `packages/ui/src`**: the site's `components/hitl/` and `public/r/` are generated and drift-checked. Your edit will be overwritten.
 - **Skipping `pnpm verify` because "it's just a small change"**: tiny TypeScript errors break the published types.
 - **Inventing a new action kind** when `approve` / `reject` / `abstain` / `undo` / `submit` / `cancel` already says it. Labels are presentation; kinds are protocol.
 - **`git push --no-verify`**: there are no local hooks blocking you, but skipping verification is the same idea. Don't.
