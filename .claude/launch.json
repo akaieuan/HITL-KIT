@@ -18,6 +18,18 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "demo-langgraph", "dev"],
       "port": 3100
+    },
+    {
+      "name": "akaoss",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--dir", "/Users/ieuanking/Desktop/hilt-projs/akaoss", "dev"],
+      "port": 3000
+    },
+    {
+      "name": "akaoss-prod",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--dir", "/Users/ieuanking/Desktop/hilt-projs/akaoss", "start"],
+      "port": 3000
     }
   ]
 }
