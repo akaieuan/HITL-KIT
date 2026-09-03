@@ -13,7 +13,7 @@ The primitives below are the ones an authorization gate needs and nothing in the
 ## Current state (verified 2026-08-11)
 
 - `@hitl-kit/core` defines **15 event kinds**; the registry ships **19 UI items + 4 lib items** (the four AI-generation densities share one event; `shared-primitives` has none).
-- A new primitive is a **three-place addition**: (1) schema + union member + `HITL_EVENT_KINDS` entry in `packages/core/src/events.ts`, (2) component + `registry.json` item + `src/lib/registry-items.ts` mirror in akaoss, (3) a group/specimen entry in `src/app/components/_components/sections.ts`. The registry slot opens automatically — `HitlRegistry` is mapped over `HitlEventKind`, so unregistered kinds render the fallback.
+- A new primitive is a **three-place addition**: (1) schema + union member + `HITL_EVENT_KINDS` entry in `packages/core/src/events.ts`, (2) component + `registry.json` item + `lib/registry-items.ts` mirror in akaoss, (3) a group/specimen entry in `lib/library.ts`. The registry slot opens automatically — `HitlRegistry` is mapped over `HitlEventKind`, so unregistered kinds render the fallback.
 - `ApprovalStateSchema` is strictly `pending | approved | rejected` — **there is no abstention anywhere in the system.**
 - `approvalChainGate` already implements multi-approver logic (ordered chains, store-backed state, `remaining` in meta) but its `defaultEscalate()` **fakes a chain UI by abusing `hitl.card` steps.** The logic exists; the vocabulary doesn't.
 - The design source for tone/phase language already exists, unshipped: akaoss `src/components/inertial/` (`MandatedGate.tsx` phases, `ui.tsx` Tone maps, `btnBlocked` — "the refusal is the demonstration").
